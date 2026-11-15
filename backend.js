@@ -19,7 +19,29 @@ const Backend = (() => {
     if (!online) return ler('rev_teste_user', null);
     const { data } = await sb.auth.getSession();
     const u = data.session?.user;
-    return u ? { id: u.id, email: u.email } : null;
+    return u ? { id: u.id, email: u.email, temSenha: !!u.user_metadata?.tem_senha } : null;
+  }
+
+  async function entrarComSenha(email, senha) {
+    if (!online) { gravar('rev_teste_user', { id: 'teste', email, temSenha: true }); return { ok: true }; }
+    const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (!error) return { ok: true };
+    if (/invalid login|credentials/i.test(error.message))
+      return { ok: false, erro: 'E-mail ou senha errados. Se é seu primeiro acesso ou você esqueceu a senha, toque em "Primeiro acesso / esqueci a senha".' };
+    return { ok: false, erro: traduzir(error.message) };
+  }
+
+  // Depois de entrar pelo código: cria (ou troca) a senha deste aluno.
+  async function criarSenha(senha) {
+    if (!online) { const u = ler('rev_teste_user', {}); gravar('rev_teste_user', { ...u, temSenha: true }); return { ok: true }; }
+    const { error } = await sb.auth.updateUser({ password: senha, data: { tem_senha: true } });
+    if (!error) return { ok: true };
+    if (/should be different|same/i.test(error.message)) {
+      await sb.auth.updateUser({ data: { tem_senha: true } });
+      return { ok: true };
+    }
+    if (/at least|short|weak/i.test(error.message)) return { ok: false, erro: 'Senha fraca: use pelo menos 6 caracteres.' };
+    return { ok: false, erro: traduzir(error.message) };
   }
 
   async function pedirCodigo(email) {
@@ -196,7 +218,7 @@ const Backend = (() => {
     return m;
   }
 
-  return { online, iniciar, usuario, pedirCodigo, confirmarCodigo, sair, acesso, registrar, enviarFila,
+  return { online, iniciar, usuario, entrarComSenha, criarSenha, pedirCodigo, confirmarCodigo, sair, acesso, registrar, enviarFila,
     carregarIndice, carregarAula, enviarConteudo,
     carregarProgresso, salvarProgresso, painelItens, painelGeral, listarLiberados, liberar, bloquear, ler, gravar };
 })();

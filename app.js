@@ -71,6 +71,8 @@ async function iniciar() {
   await Backend.iniciar();
   USER = await Backend.usuario();
   if (!USER) return telaLogin();
+  // quem entrou pelo link do e-mail ou já usava o app antes de existir senha: oferece criar uma (pode pular)
+  if (Backend.online && !USER.temSenha && !sessionStorage.getItem('rev_sem_senha')) return telaCriarSenha(false);
   await depoisDeEntrar();
 }
 
@@ -91,40 +93,98 @@ function telaLogin() {
     <img src="mascote/capa.webp" alt="">
     <h1>Revisão <span>Delmão</span></h1>
     <p>Flashcards e jogos de todas as aulas.</p>
-    ${Backend.online ? '' : '<div class="aviso"><b>Modo teste:</b> o banco ainda não está ligado. Qualquer e-mail e qualquer código entram, e tudo fica salvo só neste aparelho.</div>'}
-    <form id="f1">
+    ${Backend.online ? '' : '<div class="aviso"><b>Modo teste:</b> o banco ainda não está ligado. Qualquer e-mail, senha ou código entram, e tudo fica salvo só neste aparelho.</div>'}
+    <form id="f0">
       <label for="email">Seu e-mail de compra</label>
-      <input id="email" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com">
+      <input id="email" type="email" autocomplete="username" inputmode="email" required placeholder="voce@email.com">
+      <label for="senha" style="margin-top:10px;display:block">Senha</label>
+      <input id="senha" type="password" autocomplete="current-password" required placeholder="Sua senha">
+      <button class="principal" style="margin-top:14px">Entrar</button>
+      <button type="button" class="link" id="primeiro">Primeiro acesso / esqueci a senha</button>
+    </form>
+    <form id="f1" hidden>
+      <p>Vamos mandar um código para o seu e-mail. Depois você cria a sua senha e não precisa mais de código.</p>
+      <label for="email1">Seu e-mail de compra</label>
+      <input id="email1" type="email" autocomplete="email" inputmode="email" required placeholder="voce@email.com">
       <button class="principal" style="margin-top:14px">Receber código</button>
+      <button type="button" class="link" data-voltar>Já tenho senha</button>
     </form>
     <form id="f2" hidden>
       <p id="enviado"></p>
       <label for="cod">Código de 6 dígitos</label>
       <input id="cod" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required placeholder="000000">
-      <button class="principal" style="margin-top:14px">Entrar</button>
-      <button type="button" class="link" id="trocar">Usar outro e-mail</button>
+      <button class="principal" style="margin-top:14px">Continuar</button>
+      <button type="button" class="link" data-voltar>Voltar</button>
     </form>
     <div class="erro" id="err"></div>
   </div>`);
-  const f1 = document.getElementById('f1'), f2 = document.getElementById('f2'), err = document.getElementById('err');
+  const f0 = document.getElementById('f0'), f1 = document.getElementById('f1'), f2 = document.getElementById('f2'), err = document.getElementById('err');
+  const mostrar = f => { for (const x of [f0, f1, f2]) x.hidden = x !== f; err.textContent = ''; };
   let email = '';
+  document.getElementById('primeiro').onclick = () => {
+    document.getElementById('email1').value = document.getElementById('email').value;
+    mostrar(f1); document.getElementById('email1').focus();
+  };
+  document.querySelectorAll('[data-voltar]').forEach(b => b.onclick = () => mostrar(f0));
+  f0.onsubmit = async e => {
+    e.preventDefault(); err.textContent = '';
+    const b = f0.querySelector('button.principal'); b.disabled = true; b.textContent = 'Entrando…';
+    const r = await Backend.entrarComSenha(document.getElementById('email').value.trim().toLowerCase(), document.getElementById('senha').value);
+    b.disabled = false; b.textContent = 'Entrar';
+    if (!r.ok) { err.textContent = r.erro; return; }
+    USER = await Backend.usuario();
+    await depoisDeEntrar();
+  };
   f1.onsubmit = async e => {
     e.preventDefault(); err.textContent = '';
-    email = document.getElementById('email').value.trim().toLowerCase();
-    const b = f1.querySelector('button'); b.disabled = true; b.textContent = 'Enviando…';
+    email = document.getElementById('email1').value.trim().toLowerCase();
+    const b = f1.querySelector('button.principal'); b.disabled = true; b.textContent = 'Enviando…';
     const r = await Backend.pedirCodigo(email);
     b.disabled = false; b.textContent = 'Receber código';
     if (!r.ok) { err.textContent = r.erro; return; }
-    f1.hidden = true; f2.hidden = false;
+    mostrar(f2);
     document.getElementById('enviado').innerHTML = `Mandamos um e-mail para <b>${esc(email)}</b> (olhe também o spam). Digite o código abaixo ou toque no link do e-mail.`;
     document.getElementById('cod').focus();
   };
-  document.getElementById('trocar').onclick = () => { f2.hidden = true; f1.hidden = false; err.textContent = ''; };
   f2.onsubmit = async e => {
     e.preventDefault(); err.textContent = '';
-    const b = f2.querySelector('button'); b.disabled = true;
+    const b = f2.querySelector('button.principal'); b.disabled = true;
     const r = await Backend.confirmarCodigo(email, document.getElementById('cod').value.trim());
     b.disabled = false;
+    if (!r.ok) { err.textContent = r.erro; return; }
+    USER = await Backend.usuario();
+    telaCriarSenha(true);
+  };
+}
+
+// Depois de entrar pelo código (primeiro acesso ou "esqueci a senha"), ou para quem
+// entrou pelo link do e-mail / já usava o app antes de existir senha.
+function telaCriarSenha(obrigatoria) {
+  tela(`<div class="login">
+    <img src="mascote/joinha.webp" alt="">
+    <h1>Crie sua <span>senha</span></h1>
+    <p>Da próxima vez é só e-mail e senha, sem código.</p>
+    <form id="fs">
+      <input type="email" autocomplete="username" value="${esc(USER?.email || '')}" hidden readonly>
+      <label for="s1">Nova senha (mínimo 6 caracteres)</label>
+      <input id="s1" type="password" autocomplete="new-password" minlength="6" required>
+      <label for="s2" style="margin-top:10px;display:block">Repita a senha</label>
+      <input id="s2" type="password" autocomplete="new-password" minlength="6" required>
+      <button class="principal" style="margin-top:14px">Salvar senha</button>
+      ${obrigatoria ? '' : '<button type="button" class="link" id="depois">Agora não</button>'}
+    </form>
+    <div class="erro" id="err"></div>
+  </div>`);
+  const err = document.getElementById('err');
+  const depois = document.getElementById('depois');
+  if (depois) depois.onclick = () => { try { sessionStorage.setItem('rev_sem_senha', '1'); } catch {} depoisDeEntrar(); };
+  document.getElementById('fs').onsubmit = async e => {
+    e.preventDefault(); err.textContent = '';
+    const s1 = document.getElementById('s1').value, s2 = document.getElementById('s2').value;
+    if (s1 !== s2) { err.textContent = 'As duas senhas não estão iguais.'; return; }
+    const b = e.target.querySelector('button.principal'); b.disabled = true; b.textContent = 'Salvando…';
+    const r = await Backend.criarSenha(s1);
+    b.disabled = false; b.textContent = 'Salvar senha';
     if (!r.ok) { err.textContent = r.erro; return; }
     USER = await Backend.usuario();
     await depoisDeEntrar();
