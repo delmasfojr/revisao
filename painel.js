@@ -16,7 +16,8 @@ function textoItem(id) {
 async function iniciar() {
   await Backend.iniciar();
   const u = await Backend.usuario();
-  if (!u) { location.href = './'; return; }
+  // sem login neste endereço: entra pelo app e volta direto para cá
+  if (!u) { try { sessionStorage.setItem('rev_voltar_painel', '1'); } catch {} location.href = './'; return; }
   let acesso;
   try { acesso = await Backend.acesso(); } catch { m.innerHTML = '<p>Sem conexão com o servidor.</p>'; return; }
   if (acesso !== 'professor') { m.innerHTML = '<h1>Só para o <span>professor</span></h1><p>Esta conta não tem acesso ao painel.</p>'; return; }
@@ -26,7 +27,9 @@ async function iniciar() {
   m.innerHTML = `
     ${temArquivos ? `<div class="sec-p" style="margin-top:0"><h2>Conteúdo das <span>aulas</span></h2>
       <p class="vazio">O banco tem ${Object.keys(AULAS).length} aula${Object.keys(AULAS).length === 1 ? '' : 's'}. Depois que o Claude preparar aulas novas, toque aqui para mandar tudo o que está neste PC para o app dos alunos.</p>
-      <button class="principal" id="enviar">Enviar aulas para o banco</button><p id="envst" class="vazio"></p></div>` : ''}
+      <button class="principal" id="enviar">Enviar aulas para o banco</button><p id="envst" class="vazio"></p></div>`
+    : Backend.online ? `<div class="sec-p" style="margin-top:0"><h2>Conteúdo das <span>aulas</span></h2>
+      <p class="vazio">O banco tem ${Object.keys(AULAS).length} aula${Object.keys(AULAS).length === 1 ? '' : 's'}. Para mandar aulas novas, use o painel no seu PC: na pasta <b>App de Revisão</b>, dê dois cliques em <b>Abrir painel no PC.bat</b>. O botão "Enviar aulas para o banco" só aparece lá, porque os arquivos das aulas ficam só no seu computador.</p></div>` : ''}
     ${Backend.online ? '' : '<div class="aviso"><b>Modo teste:</b> os números abaixo são só das respostas feitas neste aparelho.</div>'}
     <div class="filtro"><label for="dias" style="margin:0">Período</label>
       <select id="dias" class="sel"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="0">Tudo</option></select></div>

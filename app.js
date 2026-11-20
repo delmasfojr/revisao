@@ -90,6 +90,10 @@ async function depoisDeEntrar() {
     if (ACESSO !== 'bloqueado') INDICE = await Backend.carregarIndice();
   } catch { tela(`<div class="login"><h1>Sem <span>conexão</span></h1><p>Não consegui falar com o servidor. Confira a internet e tente de novo.</p><button class="principal" onclick="location.reload()">Tentar de novo</button></div>`); return; }
   if (ACESSO === 'bloqueado') return telaBloqueado();
+  // o professor veio do painel (abriu o painel sem estar logado): depois de entrar, volta para o painel
+  let voltarPainel = false;
+  try { voltarPainel = sessionStorage.getItem('rev_voltar_painel') === '1'; sessionStorage.removeItem('rev_voltar_painel'); } catch {}
+  if (voltarPainel && ACESSO === 'professor') { location.href = 'painel.html'; return; }
   P = (await Backend.carregarProgresso()) || progressoVazio();
   P.itens ||= {}; P.recordes ||= {}; P.q ||= {};
   Backend.enviarFila();
@@ -534,6 +538,7 @@ function jogarQuestoes(lista, voltar) {
       <img src="mascote/${!feitas || erradas.length > acertos ? 'pensando' : 'joinha'}.webp" alt="">
       <div class="grande">${acertos}/${feitas}</div>
       <p class="fala">${!feitas ? 'BORA COMEÇAR?' : erradas.length ? 'ERRAR AQUI É ACERTAR NA PROVA!' : 'GABARITOU!'}</p>
+      ${erradas.length ? `<p>Os erros foram para o seu <b>Caderno de erros</b>.</p>` : ''}
       ${erradas.length ? `<div class="revisar"><h2>Revise <span>estas</span></h2>${erradas.map(q => `<div><b>${q.enunciado}</b>Resposta: ${q.alternativas[q.correta]}. ${q.resolucao || q.explicacao}</div>`).join('')}</div>` : ''}
       <div class="botoes">
         <button class="principal" id="volta">Escolher mais questões</button>
@@ -551,6 +556,7 @@ function telaFim(pontos, sub, recorde, erradas, denovo, num) {
     <div class="grande">${pontos}</div>
     <p class="fala">${recorde ? 'NOVO RECORDE!' : erradas.length ? 'QUASE LÁ!' : 'GABARITOU!'}</p>
     <p>${sub}</p>
+    ${erradas.length ? `<p>Os erros foram para o seu <b>Caderno de erros</b>.</p>` : ''}
     ${erradas.length ? `<div class="revisar"><h2>Revise <span>estas</span></h2>${erradas.map(x => `<div><b>${x.t}</b>${x.e}</div>`).join('')}</div>` : ''}
     <div class="botoes">
       <button class="principal" id="denovo">Jogar de novo</button>

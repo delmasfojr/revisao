@@ -87,9 +87,12 @@ function som(tipo) {
 function barraInferior(ativo) {
   const todos = listaAulas().flatMap(a => AULAS[a.aula]?.cards || []);
   const dev = todos.filter(c => pendente(c.id)).length;
+  migrarCaderno();
+  const err = contarCaderno();
   return `<nav class="nav-inf">
     <button data-nav="trilha" class="${ativo === 'trilha' ? 'on' : ''}"><span>${ic('casa')}</span>Trilha</button>
     <button data-nav="cards" class="${ativo === 'cards' ? 'on' : ''}"><span>${ic('cards')}${dev ? `<i>${dev > 99 ? '99+' : dev}</i>` : ''}</span>Cards</button>
+    <button data-nav="erros" class="${ativo === 'erros' ? 'on' : ''}"><span>${ic('caderno')}${err ? `<i>${err > 99 ? '99+' : err}</i>` : ''}</span>Erros</button>
     <button data-nav="questoes"><span>${ic('questoes')}</span>Questões</button>
     <button data-nav="sair"><span>${ic('perfil')}</span>Sair</button>
   </nav>`;
@@ -99,6 +102,7 @@ function ligarBarra() {
     const n = b.dataset.nav;
     if (n === 'trilha') telaInicio();
     else if (n === 'cards') telaCards();
+    else if (n === 'erros') telaCaderno();
     else if (n === 'questoes') telaFiltroQuestoes(listaAulas().map(a => a.aula));
     else if (n === 'sair' && confirm('Sair da sua conta neste aparelho?')) Backend.sair().then(() => telaLogin());
   });
@@ -308,10 +312,12 @@ function abrirExplicacao(erros, aoFechar) {
 }
 
 // ---------- a lição ----------
-function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
+// vidas: Infinity = sem vidas (Caderno de erros); sair: tela para onde volta ao terminar ou sair
+function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIniciais = VIDAS, sair = telaInicio }) {
   history.pushState({ t: 'jogo' }, '');
   const fila = [...exercicios], total = exercicios.length, jaErrou = new Set(), erros = [];
-  let feitos = 0, acertosDePrimeira = 0, vidas = VIDAS, seguidas = 0, xp = 0;
+  let feitos = 0, acertosDePrimeira = 0, vidas = vidasIniciais, seguidas = 0, xp = 0;
+  const mostraVidas = () => vidas === Infinity ? '∞' : vidas;
   const t0 = Date.now();
 
   function mostrar() {
@@ -336,7 +342,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       <div class="lic-top">
         <button class="fechar" id="fechar" aria-label="Sair da lição">${ic('fechar')}</button>
         <div class="lic-prog"><i style="width:${100 * feitos / total}%"></i>${seguidas >= 3 ? `<em>${premio('fogo')} ${seguidas} SEGUIDAS</em>` : ''}</div>
-        <span class="vidas ${vidas <= 1 ? 'pouca' : ''}">${premio('coracao')}<b>${vidas}</b></span>
+        <span class="vidas ${vidas <= 1 ? 'pouca' : ''}">${premio('coracao')}<b>${mostraVidas()}</b></span>
       </div>
       <div class="lic-corpo">${repetida}${corpo}</div>
       <footer class="lic-rod" id="rod">
@@ -348,7 +354,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
         </div>
       </footer>
     </div>`);
-    document.getElementById('fechar').onclick = () => { if (confirm('Sair agora? O progresso desta lição se perde.')) telaInicio(); };
+    document.getElementById('fechar').onclick = () => { if (confirm('Sair agora? O progresso desta lição se perde.')) sair(); };
     const tq = performance.now();
     let escolha = null, respondido = false;
 
@@ -405,7 +411,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       if (e.tipo === 'card') return mostrar();      // card: segue direto
 
       const rod = document.getElementById('rod'); rod.classList.add(ok ? 'r-ok' : 'r-no');
-      const cv = raiz.querySelector('.vidas'); cv.querySelector('b').textContent = vidas;
+      const cv = raiz.querySelector('.vidas'); cv.querySelector('b').textContent = mostraVidas();
       if (!ok) { cv.classList.remove('perdeu'); void cv.offsetWidth; cv.classList.add('perdeu'); raiz.querySelector('.lic-prog em')?.remove(); }
       const barra = raiz.querySelector('.lic-prog i'); barra.style.width = `${100 * feitos / total}%`;
       if (ok) { barra.classList.remove('brilha'); void barra.offsetWidth; barra.classList.add('brilha'); }
@@ -452,8 +458,8 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       </div>
     </main>`);
     if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
-    document.getElementById('denovo').onclick = () => jogarLicao(exercicios, { titulo, aoTerminar, bonus });
-    document.getElementById('volta').onclick = telaInicio;
+    document.getElementById('denovo').onclick = () => jogarLicao(exercicios, { titulo, aoTerminar, bonus, vidas: vidasIniciais, sair });
+    document.getElementById('volta').onclick = sair;
   }
 
   function fim() {
@@ -480,7 +486,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
     if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
     contarAte(document.getElementById('xpfim'), ganho);
     if (pct >= 70) confete();
-    document.getElementById('cont').onclick = telaInicio;
+    document.getElementById('cont').onclick = sair;
   }
 
   mostrar();

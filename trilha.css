@@ -260,3 +260,17 @@ header button .icn{font-size:22px;vertical-align:-.2em}
 .ex-rod{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid #E5E5E5;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
 .ex-rod .btn3d{max-width:588px;margin:0 auto}
 @media (prefers-reduced-motion:reduce){.explica,.ex-passos li{animation:none}.ex-card .fr,.ex-card .vs{transition:none}}
+
+/* ---------- Caderno de erros ---------- */
+.caderno{padding-bottom:110px}
+.cad-aula{margin-bottom:8px}
+.cad-aula .num{background:var(--verm)}
+.cad-lista{display:grid;gap:8px;margin-bottom:6px}
+.cad-item{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;background:#fff;border:2px solid var(--borda);border-radius:14px;padding:10px 14px;font-weight:400;color:var(--navy)}
+.cad-item:active{transform:translateY(2px)}
+.cad-tag{align-self:flex-start;font:800 11px 'Open Sans',sans-serif;letter-spacing:1px;color:var(--lar)}
+.cad-tag.t-vf{color:#7A4FD0}.cad-tag.t-questao{color:var(--verde)}
+.cad-perg{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.35}
+.cad-perg .figura,.cad-perg img,.cad-perg svg{display:none}
+.cad-info{font-size:13px;color:#667}
+.cad-info .icn{color:var(--verde);font-size:14px;vertical-align:-.15em}
