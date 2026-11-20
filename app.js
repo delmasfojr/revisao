@@ -20,7 +20,7 @@ function cabecalho(voltar) {
   return `<header>
     ${voltar ? '<button data-acao="inicio" aria-label="Voltar">←</button>' : ''}
     <div class="marca">Revisão <span>Delmão</span></div>
-    ${ACESSO === 'professor' ? '<button data-acao="painel" aria-label="Painel do professor" title="Painel do professor">📊</button>' : ''}
+    ${ACESSO === 'professor' ? `<button data-acao="painel" aria-label="Painel do professor" title="Painel do professor">${ic('grafico')}</button>` : ''}
     <button data-acao="sair" style="font-size:14px">Sair</button>
   </header>`;
 }
@@ -40,6 +40,14 @@ async function aula(num) {
   return AULAS[num];
 }
 const aulaDoItem = id => id.split('-')[0];
+// Figura de uma questão/card: campo "figura" no JSON. Pode ser um desenho SVG escrito no próprio
+// JSON (fica protegido no banco junto com o resto) ou o caminho de uma imagem. Opcional: "legenda".
+function figuraDe(x) {
+  if (!x || !x.figura) return '';
+  const f = String(x.figura).trim();
+  const corpo = f.startsWith('<') ? f : `<img src="${esc(f)}" alt="${esc(x.legenda || 'figura da questão')}">`;
+  return `<figure class="figura">${corpo}${x.legenda ? `<figcaption>${esc(x.legenda)}</figcaption>` : ''}</figure>`;
+}
 
 // ---------------- progresso ----------------
 function progressoVazio() { return { itens: {}, xp: 0, seq: 0, ultimoDia: null, recordes: {} }; }
@@ -220,7 +228,7 @@ async function telaInicio() {
   tela(`${cabecalho(false)}<main>
     <div class="stats">
       <div class="stat"><b>${P.xp}</b><small>pontos</small></div>
-      <div class="stat"><b>🔥 ${sequenciaAtual()}</b><small>dias seguidos</small></div>
+      <div class="stat"><b>${premio('fogo')} ${sequenciaAtual()}</b><small>dias seguidos</small></div>
       <div class="stat"><b>${dom}</b><small>cards dominados</small></div>
     </div>
     <button class="revdia" id="revdia" ${devidos.length ? '' : 'disabled'}>
@@ -229,7 +237,7 @@ async function telaInicio() {
         ? `${devidos.length} card${devidos.length > 1 ? 's' : ''} esperando por você`
         : 'Nada pendente agora. Escolha uma aula e treine!'}</small></span>
     </button>
-    <button class="modo" id="banco" style="margin-bottom:8px"><span class="ic">📝</span><span><b>Banco de questões</b>
+    <button class="modo" id="banco" style="margin-bottom:8px"><span class="ic">${ic('questoes')}</span><span><b>Banco de questões</b>
       <small>${listaAulas().reduce((s, a) => s + questoesDa(AULAS[a.aula]).length, 0)} questões de todas as aulas · ${resumoQ(listaAulas().flatMap(a => questoesDa(AULAS[a.aula])))}</small></span></button>
     ${INDICE.blocos.map(b => `<div class="bloco"><h3>${esc(b.nome)}</h3>${b.aulas.map(a => {
       const cs = AULAS[a.aula].cards, d = cs.filter(c => dominado(c.id)).length;
@@ -253,13 +261,13 @@ async function telaAula(num) {
     <span class="chip">Aula ${A.aula}</span>
     <h1>${esc(A.titulo)}</h1>
     <div class="modos">
-      <button class="modo" id="m-flash"><span class="ic">🃏</span><span><b>Flashcards</b>
+      <button class="modo" id="m-flash"><span class="ic">${ic('cards')}</span><span><b>Flashcards</b>
         <small>${A.cards.length} cards · ${novos} novos · ${pend} para revisar</small></span></button>
-      <button class="modo" id="m-quiz"><span class="ic">⚡</span><span><b>Quiz relâmpago</b>
+      <button class="modo" id="m-quiz"><span class="ic">${ic('raio')}</span><span><b>Quiz relâmpago</b>
         <small>10 questões, 20 segundos cada${rq ? ` · recorde ${rq}` : ''}</small></span></button>
-      <button class="modo" id="m-vf"><span class="ic">✅</span><span><b>Verdade ou mentira</b>
+      <button class="modo" id="m-vf"><span class="ic">${ic('vf')}</span><span><b>Verdade ou mentira</b>
         <small>60 segundos, acerte o máximo${rv ? ` · recorde ${rv}` : ''}</small></span></button>
-      <button class="modo" id="m-q"><span class="ic">📝</span><span><b>Questões</b>
+      <button class="modo" id="m-q"><span class="ic">${ic('questoes')}</span><span><b>Questões</b>
         <small>${questoesDa(A).length} questões sem cronômetro, com resolução · ${resumoQ(questoesDa(A))}</small></span></button>
     </div>
   </main>`);
@@ -288,12 +296,12 @@ function jogarFlash(deck, rotulo, num) {
       <div class="topo"><div class="prog"><i style="width:${100 * feitos / total}%"></i></div><span class="cont">${feitos}/${total}</span></div>
       <span class="chip">${esc(rotulo)} · ${esc(c.topico)}</span>
       <div class="flash" id="flash"><div class="dentro">
-        <div class="face frente"><div>${c.frente}</div><div class="dica-virar">toque para virar</div></div>
+        <div class="face frente"><div>${c.frente}</div>${figuraDe(c)}<div class="dica-virar">toque para virar</div></div>
         <div class="face verso"><div>${c.verso}</div></div>
       </div></div>
       <div class="respostas2" id="resp" hidden>
-        <button class="errei" id="errei">✗ Errei</button>
-        <button class="acertei" id="acertei">✓ Acertei</button>
+        <button class="errei" id="errei">${ic('xis')} Errei</button>
+        <button class="acertei" id="acertei">${ic('certo')} Acertei</button>
       </div>
       <p id="pense" style="text-align:center;color:#556;margin:0">Pense na resposta e toque no card.</p>
     </main>`);
@@ -345,7 +353,7 @@ function jogarQuiz(A) {
       <div class="topo"><div class="prog"><i style="width:${100 * i / qs.length}%"></i></div><span class="cont pontos">${pontos}</span></div>
       <div class="cron"><i id="cron"></i></div>
       <span class="chip">${i + 1} de ${qs.length} · ${esc(q.topico)}</span>
-      <div class="enun">${q.enunciado}</div>
+      <div class="enun">${q.enunciado}</div>${figuraDe(q)}
       <div class="alts">${ordem.map((o, n) => `<button class="alt" data-k="${o.k}"><span class="l">${'ABCD'[n]}</span><span>${o.t}</span></button>`).join('')}</div>
       <div id="depois"></div>
     </main>`);
@@ -418,7 +426,7 @@ function jogarVF(A) {
     else { combo = 0; if (!erradas.includes(s)) erradas.push(s); }
     ganhar(ok ? 2 : 0);
     document.getElementById('pts').textContent = pontos;
-    document.getElementById('combo').textContent = combo >= 3 ? `COMBO x${1 + Math.floor(combo / 3)} 🔥` : '';
+    document.getElementById('combo').textContent = combo >= 3 ? `COMBO x${1 + Math.floor(combo / 3)}` : '';
     card.classList.add(ok ? 'ok' : 'no');
     setTimeout(proxima, ok ? 300 : 700);
   }
@@ -496,7 +504,7 @@ function jogarQuestoes(lista, voltar) {
     tela(`${cabecalho(true)}<main>
       <div class="topo"><div class="prog"><i style="width:${100 * i / lista.length}%"></i></div><span class="cont">${i + 1}/${lista.length}</span></div>
       <span class="chip">Aula ${aulaDoItem(q.id)} · ${esc(q.topico)}${antes ? (antes.ok ? ' · você já acertou' : ' · você errou da última vez') : ''}</span>
-      <div class="enun">${q.enunciado}</div>
+      <div class="enun">${q.enunciado}</div>${figuraDe(q)}
       <div class="alts">${ordem.map((o, n) => `<button class="alt" data-k="${o.k}"><span class="l">${'ABCD'[n]}</span><span>${o.t}</span></button>`).join('')}</div>
       <div id="depois"></div>
       <button class="link" id="sair">Parar e ver resultado</button>
@@ -554,4 +562,4 @@ function telaFim(pontos, sub, recorde, erradas, denovo, num) {
 }
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
-iniciar();
+// iniciar() agora é chamado no fim de trilha.js
