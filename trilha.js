@@ -122,6 +122,7 @@ telaInicio = async function () {
     const A = AULAS[a.aula], nos = nosDa(A), feitos = feitosNa(a.aula), cor = CORES[k % 2], lado = k % 2 ? -1 : 1;
     k++;
     const completa = feitos >= nos.length;
+    const antes = atualMarcado;
     const bolinhas = nos.map((no, i) => {
       const estado = i < feitos ? 'feito' : i === feitos ? 'aberto' : 'fechado';
       const atual = estado === 'aberto' && !atualMarcado;
@@ -138,7 +139,9 @@ telaInicio = async function () {
       <div class="faixa"><div><small>AULA ${a.aula}${completa ? ' · CONCLUÍDA' : ''}</small><b>${esc(A.titulo)}</b></div>
         <button class="guia" data-guia="${a.aula}" title="Modos antigos desta aula">${ic('livro')}</button></div>
       <div class="caminho">${bolinhas}
-        <img class="masc-trilha" style="--lado:${-lado}" src="mascote/${['estudando', 'pensando', 'desafiando', 'ideia', 'joinha', 'explicando'][k % 6]}.webp" alt="">
+        ${!antes && atualMarcado   // na aula em que o aluno está, o Delmão animado acena
+          ? mascoteAnim('acenando', 'masc-trilha').replace('<img ', `<img style="--lado:${-lado}" `)
+          : `<img class="masc-trilha" style="--lado:${-lado}" src="mascote/${['estudando', 'pensando', 'desafiando', 'ideia', 'joinha', 'explicando'][k % 6]}.webp" alt="">`}
       </div>
     </section>`;
   }).join('')).join('');
@@ -256,10 +259,10 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       corpo = `<h2 class="lic-perg">${it.enunciado}</h2>${figuraDe(it)}
         <div class="opcoes">${ordem.map((o, n) => `<button class="opc" data-k="${o.k}"><span class="n">${n + 1}</span><span>${o.t}</span></button>`).join('')}</div>`;
     } else if (e.tipo === 'vf') {
-      corpo = `<div class="fala-masc"><img src="mascote/desafiando.webp" alt=""><div class="balao">${it.afirmacao}</div></div>${figuraDe(it)}
+      corpo = `<div class="fala-masc">${typeof mascoteAnim === 'function' ? mascoteAnim('pensando') : '<img src="mascote/pensando.webp" alt="">'}<div class="balao">${it.afirmacao}</div></div>${figuraDe(it)}
         <div class="opcoes vf2"><button class="opc" data-k="0"><span class="n">1</span><span>${ic('xis')} Mentira</span></button><button class="opc" data-k="1"><span class="n">2</span><span>${ic('certo')} Verdade</span></button></div>`;
     } else {
-      corpo = `<div class="fala-masc"><img src="mascote/pensando.webp" alt=""><div class="balao">${it.frente}</div></div>
+      corpo = `<div class="fala-masc">${typeof mascoteAnim === 'function' ? mascoteAnim('pensando') : '<img src="mascote/pensando.webp" alt="">'}<div class="balao">${it.frente}</div></div>
         <div class="verso-card" id="verso" hidden>${it.verso}</div>
         <p class="pense" id="pense">Pense na resposta antes de ver.</p>`;
     }
@@ -346,7 +349,8 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       const certaTxt = e.tipo === 'vf' ? (it.verdadeira ? 'VERDADE' : 'MENTIRA') : it.alternativas[it.correta];
       const explic = e.tipo === 'questao' ? (it.resolucao || it.explicacao) : it.explicacao;
       document.getElementById('msg').innerHTML = `
-        <img src="mascote/${ok ? (seguidas >= 3 ? 'comemorando' : 'joinha') : (vidas <= 1 ? 'frustrado' : 'facepalm')}.webp" alt="">
+        ${(() => { const pose = ok ? (seguidas >= 3 ? 'comemorando' : 'joinha') : (vidas <= 1 ? 'frustrado' : 'facepalm');
+          return typeof mascoteAnim === 'function' && ANIMADOS.includes(pose) ? mascoteAnim(pose) : `<img src="mascote/${pose}.webp" alt="">`; })()}
         <div><b>${ok ? elogios[Math.floor(Math.random() * elogios.length)] : 'Resposta certa:'}</b>
         ${ok ? '' : `<div class="certa-txt">${certaTxt}</div>`}
         <div class="explic-txt">${explic || ''}</div></div>`;
@@ -359,7 +363,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
   function semVidas() {
     pararJogo(); pararJogo = () => {};
     tela(`<main class="lic-fim">
-      <img src="mascote/dormindo.webp" alt="">
+      ${typeof mascoteAnim === 'function' ? mascoteAnim('frustrado') : '<img src="mascote/frustrado.webp" alt="">'}
       <h1>Acabaram <span>as vidas</span></h1>
       <p>Respira, relê a explicação e tenta de novo. Errar aqui é acertar na prova!</p>
       <div class="botoes2">
@@ -379,7 +383,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
     if (aoTerminar) aoTerminar();
     som('fim');
     tela(`<main class="lic-fim">
-      <img class="masc-pula" src="mascote/${pct >= 70 ? 'comemorando' : 'joinha'}.webp" alt="">
+      ${typeof mascoteAnim === 'function' ? mascoteAnim(pct >= 70 ? 'comemorando' : 'joinha', 'masc-pula') : `<img class="masc-pula" src="mascote/${pct >= 70 ? 'comemorando' : 'joinha'}.webp" alt="">`}
       <h1>Lição <span>concluída!</span></h1>
       <p class="fala">${pct === 100 ? 'GABARITOU!' : pct >= 70 ? 'TÁ FICANDO FERA!' : 'ERROU? AGORA NÃO ERRA MAIS!'}</p>
       <div class="caixas">

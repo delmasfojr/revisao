@@ -98,7 +98,7 @@ async function depoisDeEntrar() {
 
 function telaLogin() {
   tela(`<div class="login">
-    <img src="mascote/capa.webp" alt="">
+    ${typeof mascoteAnim === 'function' ? mascoteAnim('acenando') : '<img src="mascote/capa.webp" alt="">'}
     <h1>Revisão <span>Delmão</span></h1>
     <p>Flashcards e jogos de todas as aulas.</p>
     ${Backend.online ? '' : '<div class="aviso"><b>Modo teste:</b> o banco ainda não está ligado. Qualquer e-mail, senha ou código entram, e tudo fica salvo só neste aparelho.</div>'}

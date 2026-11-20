@@ -30,6 +30,15 @@ function contarAte(el, alvo, ms = 900) {
   requestAnimationFrame(passo);
 }
 
+// Delmão animado de verdade (vídeo do Gemini sem o fundo, em mascote/anim-*.webp).
+// Quem pediu "reduzir movimento" vê o primeiro quadro parado.
+// poses que já têm versão animada aprovada (as outras usam a figura parada)
+const ANIMADOS = ['acenando', 'pensando', 'joinha', 'facepalm', 'comemorando', 'frustrado'];
+function mascoteAnim(nome, cls = '') {
+  const arq = SEM_MOVIMENTO ? `anim-${nome}-parado` : `anim-${nome}`;
+  return `<img class="masc-anim ${cls}" src="mascote/${arq}.webp" alt="" draggable="false">`;
+}
+
 // estrelinhas pulando para fora do baú
 function chuvaDeEstrelas(alvo, qtd = 14) {
   if (SEM_MOVIMENTO || !alvo) return;

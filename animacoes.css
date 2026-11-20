@@ -87,3 +87,9 @@
   *,*::before,*::after{animation:none!important;transition:none!important}
   .bau-tela .depois{opacity:1}
 }
+
+/* Delmão animado (vídeo) */
+.masc-anim{display:block}
+.masc-trilha.masc-anim{animation:none;width:150px}
+@media (max-width:420px){.masc-trilha.masc-anim{width:120px}}
+.login .masc-anim{width:190px;align-self:center;margin-bottom:6px}
