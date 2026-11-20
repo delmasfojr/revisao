@@ -256,10 +256,10 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
       corpo = `<h2 class="lic-perg">${it.enunciado}</h2>${figuraDe(it)}
         <div class="opcoes">${ordem.map((o, n) => `<button class="opc" data-k="${o.k}"><span class="n">${n + 1}</span><span>${o.t}</span></button>`).join('')}</div>`;
     } else if (e.tipo === 'vf') {
-      corpo = `<div class="fala-masc">${typeof mascoteAnim === 'function' ? mascoteAnim('pensando') : '<img src="mascote/pensando.webp" alt="">'}<div class="balao">${it.afirmacao}</div></div>${figuraDe(it)}
+      corpo = `<div class="fala-masc"><img src="mascote/desafiando.webp" alt=""><div class="balao">${it.afirmacao}</div></div>${figuraDe(it)}
         <div class="opcoes vf2"><button class="opc" data-k="0"><span class="n">1</span><span>${ic('xis')} Mentira</span></button><button class="opc" data-k="1"><span class="n">2</span><span>${ic('certo')} Verdade</span></button></div>`;
     } else {
-      corpo = `<div class="fala-masc">${typeof mascoteAnim === 'function' ? mascoteAnim('pensando') : '<img src="mascote/pensando.webp" alt="">'}<div class="balao">${it.frente}</div></div>
+      corpo = `<div class="fala-masc"><img src="mascote/pensando.webp" alt=""><div class="balao">${it.frente}</div></div>
         <div class="verso-card" id="verso" hidden>${it.verso}</div>
         <p class="pense" id="pense">Pense na resposta antes de ver.</p>`;
     }
