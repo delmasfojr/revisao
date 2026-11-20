@@ -51,7 +51,7 @@
 .lic-fim h1,.lic-fim .fala{animation:sobe .4s ease-out .25s both}
 .caixas .cx{animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
 .caixas .cx:nth-child(1){animation-delay:.45s}.caixas .cx:nth-child(2){animation-delay:.6s}.caixas .cx:nth-child(3){animation-delay:.75s}
-.lic-fim > .btn3d{animation:sobe .4s ease-out .9s both}
+.lic-fim > .btn3d,.lic-fim > .botoes2{animation:sobe .4s ease-out .9s both}
 @keyframes sobe{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
 
 /* confete */

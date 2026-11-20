@@ -54,6 +54,9 @@ main.trilha{padding:8px 16px calc(110px + env(safe-area-inset-bottom));max-width
 @media (max-width:420px){.masc-trilha{width:96px;transform:translateX(calc(-50% + var(--lado) * 118px))}}
 
 .linha:has(.popover){z-index:40}
+/* cada aula entra animada e vira uma camada própria: a aula com o balão aberto sobe para a frente das outras */
+.unidade{position:relative}
+.unidade:has(.popover){z-index:15}
 .popover{position:absolute;top:84px;left:50%;margin-left:-140px;transform:translateX(calc(var(--x) * -1));z-index:15;width:280px;background:var(--c);color:#fff;border-radius:16px;padding:14px 16px;
   box-shadow:0 4px 0 var(--c2),0 10px 24px #0F1B2D33;text-align:left;animation:aparece .15s ease-out}
 @keyframes aparece{from{opacity:0}}
@@ -141,8 +144,10 @@ main.trilha{padding:8px 16px calc(110px + env(safe-area-inset-bottom));max-width
 }
 
 /* fim da lição */
-.lic-fim{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 16px;max-width:520px;margin:0 auto}
-.lic-fim img{width:180px;animation:surge .4s ease-out}
+.lic-fim{min-height:100vh;min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;padding:24px 16px;max-width:520px;margin:0 auto}
+/* centraliza na altura, mas se não couber começa do topo e rola (nada some para cima da tela) */
+.lic-fim>:first-child{margin-top:auto}.lic-fim>:last-child{margin-bottom:auto}
+.lic-fim img{width:180px;max-height:34vh;object-fit:contain;animation:surge .4s ease-out}
 .lic-fim h1{font-size:36px;margin-top:10px}
 .caixas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:18px 0 24px}
 .cx{border-radius:16px;border:2px solid var(--c);overflow:hidden;--c:var(--lar)}
@@ -213,3 +218,45 @@ main.trilha{padding:8px 16px calc(110px + env(safe-area-inset-bottom));max-width
 .stat b .icn{font-size:24px}
 .errei .icn,.acertei .icn{font-size:16px;vertical-align:-.15em}
 header button .icn{font-size:22px;vertical-align:-.2em}
+
+/* "Entenda o erro": passo a passo + flashcards do assunto, por cima da lição */
+.btn3d.bt-entender{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--navy)}
+.btn3d.bt-entender .icn{width:20px;height:20px}
+.lic-rod.r-no .rod-bts{flex-wrap:wrap}
+.explica{position:fixed;inset:0;z-index:60;background:#fff;overflow-y:auto;animation:sobe-ex .25s ease-out}
+@keyframes sobe-ex{from{transform:translateY(40px);opacity:0}}
+.ex-dentro{max-width:620px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 16px 120px}
+.ex-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.ex-tit{display:flex;align-items:center;gap:6px;font:800 13px 'Open Sans';letter-spacing:1px;color:var(--lar)}
+.ex-tit .icn{width:18px;height:18px}
+.ex-masc{display:flex;align-items:flex-end;gap:10px;margin:2px 0 10px}
+.ex-masc img{width:86px}
+.ex-masc .fala{font-size:22px;margin-bottom:18px}
+.ex-perg{font-size:19px;font-weight:700;background:var(--creme);border-radius:16px;padding:14px 16px}
+.ex-perg small{display:block;font-size:12px;font-weight:800;letter-spacing:.8px;color:#8A8F99;text-transform:uppercase;margin-bottom:2px}
+.ex-resp{display:grid;gap:8px;margin:12px 0 4px}
+.ex-resp>div{display:flex;align-items:center;gap:10px;border-radius:14px;padding:10px 14px;font-weight:700;font-size:17px;border:2px solid}
+.ex-resp small{display:block;font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;opacity:.8}
+.ex-resp .icn{width:22px;height:22px;flex:none}
+.r-voce{background:#FDE7E4;border-color:#F1A79F !important;color:var(--verm2)}
+.r-certa{background:#E3F6EA;border-color:#7ED3A0 !important;color:var(--verde2)}
+.ex-h{font:24px 'Anton',Impact,sans-serif;text-transform:uppercase;margin:22px 0 8px;line-height:1.15}
+.ex-h span{display:block;color:var(--lar);font-size:18px}
+.ex-passos{list-style:none;counter-reset:passo;padding:0;margin:0;display:grid;gap:10px}
+.ex-passos li{counter-increment:passo;position:relative;padding:12px 14px 12px 52px;background:var(--azul);border-radius:14px;font-size:17px;animation:surge .3s ease-out both}
+.ex-passos li::before{content:counter(passo);position:absolute;left:12px;top:10px;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font:16px/28px 'Anton',Impact,sans-serif;text-align:center}
+.ex-passos li:nth-child(2){animation-delay:.08s}.ex-passos li:nth-child(3){animation-delay:.16s}.ex-passos li:nth-child(n+4){animation-delay:.24s}
+.ex-sub{margin:0 0 10px;color:#556;font-size:14px}
+.ex-cards{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 12px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.ex-card{flex:0 0 78%;max-width:340px;min-height:190px;scroll-snap-align:center;border:0;border-radius:20px;padding:0;background:none;cursor:pointer;position:relative;font:inherit;color:inherit;text-align:center}
+.ex-card .fr,.ex-card .vs{position:absolute;inset:0;border-radius:20px;padding:18px 16px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;transition:opacity .2s,transform .3s}
+.ex-card .fr{background:#fff;border:2px solid var(--borda);box-shadow:0 4px 0 var(--borda);font-size:19px;font-weight:700}
+.ex-card .fr small{font-size:12px;font-weight:400;color:#889}
+.ex-card .vs{background:var(--navy);color:#fff;font-size:17px;opacity:0;transform:rotateY(90deg)}
+.ex-card .vs b{color:var(--lar)}
+.ex-card.virado .fr{opacity:0;transform:rotateY(-90deg)}
+.ex-card.virado .vs{opacity:1;transform:none}
+.ex-card .figura{max-height:90px;overflow:hidden}
+.ex-rod{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid #E5E5E5;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
+.ex-rod .btn3d{max-width:588px;margin:0 auto}
+@media (prefers-reduced-motion:reduce){.explica,.ex-passos li{animation:none}.ex-card .fr,.ex-card .vs{transition:none}}

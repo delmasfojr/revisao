@@ -29,14 +29,19 @@ function nosDa(A) {
     { tipo: 'bau', nome: 'Baú da aula' }
   ];
 }
+// o que o aluno já respondeu nas lições: id → 1 (acertou de primeira) ou 0 (errou). Evita repetir pergunta entre fases.
+const visto = id => (P.vistos ||= {})[id];
+function marcarVisto(id, ok) { (P.vistos ||= {})[id] = ok ? 1 : 0; }
+// ordem de preferência: nunca vista → errada antes → já acertada
+const jaViu = x => visto(x.id) === undefined ? 0 : visto(x.id) === 0 ? 1 : 2;
 function exerciciosDaLicao(A, grupo) {
   const lim = Math.max(3, Math.ceil(POR_LICAO / grupo.length));
   const ex = [];
   for (const t of grupo) {
-    // só perguntas que o app corrige sozinho (os flashcards ficam na aba Cards); as que têm figura vêm primeiro
-    const comFig = x => x.figura ? 0 : 1;
-    const qs = embaralhar(A.quiz.filter(q => q.topico === t)).sort((a, b) => comFig(a) - comFig(b));
-    const vs = embaralhar(A.vf.filter(v => v.topico === t)).sort((a, b) => comFig(a) - comFig(b));
+    // só perguntas que o app corrige sozinho (os flashcards ficam na aba Cards); inéditas primeiro, e entre elas as com figura
+    const ordem = (a, b) => jaViu(a) - jaViu(b) || (a.figura ? 0 : 1) - (b.figura ? 0 : 1);
+    const qs = embaralhar(A.quiz.filter(q => q.topico === t)).sort(ordem);
+    const vs = embaralhar(A.vf.filter(v => v.topico === t)).sort(ordem);
     const pool = [];
     while (qs.length || vs.length) {
       if (vs.length) pool.push({ tipo: 'vf', item: vs.shift() });
@@ -47,9 +52,9 @@ function exerciciosDaLicao(A, grupo) {
   return ex.slice(0, POR_LICAO);
 }
 function exerciciosDoDesafio(A) {
-  const qs = (A.questoes || []).map(q => ({ tipo: 'questao', item: q }));
-  const extra = embaralhar(A.quiz).slice(0, Math.max(0, 8 - qs.length)).map(q => ({ tipo: 'quiz', item: q }));
-  return embaralhar([...qs, ...extra]);
+  // só as questões de prova da aula: elas nunca aparecem nas lições, então o desafio não repete nada
+  // (o quiz e o V/F ficam só nas lições; o que o aluno errar ali volta na própria lição e na Revisão do dia)
+  return embaralhar((A.questoes || []).map(q => ({ tipo: 'questao', item: q })));
 }
 
 // ---------- progresso na trilha ----------
@@ -238,10 +243,74 @@ async function telaCards() {
   });
 }
 
+// ---------- "Entenda o erro": passo a passo + flashcards do assunto ----------
+// Usa a "resolucao" da questão quando existe; senão quebra a "explicacao" em passos (uma frase por passo).
+function passosDe(it) {
+  const txt = String(it.resolucao || it.explicacao || '').trim();
+  if (!txt) return [];
+  return txt.split(/<br\s*\/?>|\n|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÂÊÔÃÕÇ])/).map(s => s.trim()).filter(Boolean);
+}
+// flashcards da mesma aula e do mesmo tópico da pergunta errada
+function cardsDoAssunto(it) {
+  const A = AULAS[aulaDoItem(it.id)];
+  return A ? (A.cards || []).filter(c => c.topico === it.topico) : [];
+}
+// errou: os cards do assunto entram na Revisão do dia (sem apagar o que o aluno já sabia)
+function mandarParaRevisao(cards) {
+  for (const c of cards) {
+    const x = P.itens[c.id] || { c: 0, p: 0, v: 0, e: 0 };
+    x.p = Math.min(x.p || Date.now(), Date.now());
+    P.itens[c.id] = x;
+  }
+  salvar();
+}
+// erros = [{ e, marcou }]; abre a tela por cima da lição e chama aoFechar quando o aluno termina
+function abrirExplicacao(erros, aoFechar) {
+  let i = 0;
+  const caixa = document.createElement('div');
+  caixa.className = 'explica';
+  document.body.appendChild(caixa);
+  document.body.style.overflow = 'hidden';
+  function fechar() { caixa.remove(); document.body.style.overflow = ''; aoFechar && aoFechar(); }
+  function desenhar() {
+    const { e, marcou } = erros[i], it = e.item;
+    const perg = e.tipo === 'vf' ? it.afirmacao : it.enunciado;
+    const certa = e.tipo === 'vf' ? (it.verdadeira ? 'Verdade' : 'Mentira') : it.alternativas[it.correta];
+    const passos = passosDe(it), cards = cardsDoAssunto(it).slice(0, 6), ultimo = i === erros.length - 1;
+    caixa.innerHTML = `<div class="ex-dentro">
+      <div class="ex-top">
+        <span class="ex-tit">${ic('livro')} ENTENDA O ERRO${erros.length > 1 ? ` · ${i + 1} de ${erros.length}` : ''}</span>
+        <button class="fechar" data-x aria-label="Fechar">${ic('fechar')}</button>
+      </div>
+      <div class="ex-masc"><img src="mascote/explicando.webp" alt=""><span class="fala">BORA ENTENDER?</span></div>
+      <div class="ex-perg">${e.tipo === 'vf' ? '<small>A frase era:</small>' : ''}${perg}</div>
+      ${figuraDe(it)}
+      <div class="ex-resp">
+        ${marcou != null ? `<div class="r-voce">${ic('xis')}<span><small>Você marcou</small>${marcou}</span></div>` : ''}
+        <div class="r-certa">${ic('certo')}<span><small>Resposta certa</small>${certa}</span></div>
+      </div>
+      ${passos.length ? `<h3 class="ex-h">Como resolver</h3>
+      <ol class="ex-passos">${passos.map(p => `<li>${p}</li>`).join('')}</ol>` : ''}
+      ${cards.length ? `<h3 class="ex-h">Relembre o assunto <span>${esc(it.topico)}</span></h3>
+      <p class="ex-sub">Toque no card para virar. Eles também entraram na sua <b>Revisão do dia</b>.</p>
+      <div class="ex-cards">${cards.map((c, k) => `<button class="ex-card" data-card="${k}">
+        <span class="fr"><span>${c.frente}</span>${figuraDe(c)}<small>toque para virar</small></span>
+        <span class="vs">${c.verso}</span></button>`).join('')}</div>` : ''}
+      <div class="ex-rod"><button class="btn3d verde" data-ok>${ultimo ? 'ENTENDI!' : 'PRÓXIMO ERRO'}</button></div>
+    </div>`;
+    caixa.scrollTop = 0;
+    caixa.querySelector('[data-x]').onclick = fechar;
+    caixa.querySelector('[data-ok]').onclick = () => ultimo ? fechar() : (i++, desenhar());
+    caixa.querySelectorAll('.ex-card').forEach(b => b.onclick = () => b.classList.toggle('virado'));
+    caixa.querySelector('[data-ok]').focus({ preventScroll: true });
+  }
+  desenhar();
+}
+
 // ---------- a lição ----------
 function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
   history.pushState({ t: 'jogo' }, '');
-  const fila = [...exercicios], total = exercicios.length, jaErrou = new Set();
+  const fila = [...exercicios], total = exercicios.length, jaErrou = new Set(), erros = [];
   let feitos = 0, acertosDePrimeira = 0, vidas = VIDAS, seguidas = 0, xp = 0;
   const t0 = Date.now();
 
@@ -284,7 +353,9 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
     let escolha = null, respondido = false;
 
     const teclas = ev => {
-      if (ev.key === 'Enter') { const b = raiz.querySelector('.rod-bts button:not([disabled])'); if (b) { ev.preventDefault(); b.click(); } return; }
+      const aberta = document.querySelector('.explica');
+      if (aberta) { if (ev.key === 'Escape') aberta.querySelector('[data-x]').click(); return; }   // "Entenda o erro" aberto: Enter fica com o botão dele
+      if (ev.key === 'Enter') { const b = raiz.querySelector('#cont') || raiz.querySelector('.rod-bts button:not([disabled])'); if (b) { ev.preventDefault(); b.click(); } return; }
       const n = +ev.key; if (!respondido && n >= 1 && n <= 4) raiz.querySelectorAll('.opc')[n - 1]?.click();
     };
     document.addEventListener('keydown', teclas);
@@ -322,6 +393,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
         registrar(it, e.tipo === 'card' ? 'card' : e.tipo, ok, performance.now() - tq);
         if (e.tipo === 'card') atualizarCaixa(it.id, ok);
         if (e.tipo === 'questao') { P.q ||= {}; P.q[it.id] = { ok, n: (P.q[it.id]?.n || 0) + 1 }; }
+        if (e.tipo === 'quiz' || e.tipo === 'vf') marcarVisto(it.id, ok);
       }
       if (ok) { if (primeira) acertosDePrimeira++; feitos++; seguidas++; xp += primeira ? 2 : 1; som('ok'); }
       else {
@@ -351,23 +423,35 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
         <div><b>${ok ? elogios[Math.floor(Math.random() * elogios.length)] : 'Resposta certa:'}</b>
         ${ok ? '' : `<div class="certa-txt">${certaTxt}</div>`}
         <div class="explic-txt">${explic || ''}</div></div>`;
-      document.getElementById('bts').innerHTML = `<button class="btn3d ${ok ? 'verde' : 'vermelho'}" id="cont">CONTINUAR</button>`;
+      let erro = null;
+      if (!ok) {
+        const marcou = e.tipo === 'vf' ? (escolha === 1 ? 'Verdade' : 'Mentira') : it.alternativas[escolha];
+        erro = { e, marcou };
+        if (!erros.some(x => x.e.item.id === it.id)) erros.push(erro);
+        mandarParaRevisao(cardsDoAssunto(it));
+      }
+      document.getElementById('bts').innerHTML = (ok ? '' : `<button class="btn3d branco bt-entender" id="entender">${ic('livro')} COMO RESOLVER</button>`)
+        + `<button class="btn3d ${ok ? 'verde' : 'vermelho'}" id="cont">CONTINUAR</button>`;
       document.getElementById('cont').onclick = () => vidas <= 0 ? semVidas() : mostrar();
+      if (!ok) document.getElementById('entender').onclick = () => abrirExplicacao([erro], () => document.getElementById('cont')?.focus({ preventScroll: true }));
       document.getElementById('cont').focus({ preventScroll: true });
     }
   }
 
   function semVidas() {
     pararJogo(); pararJogo = () => {};
+    salvar();                                     // guarda o que ele já viu, mesmo sem terminar
     tela(`<main class="lic-fim">
       ${typeof mascoteAnim === 'function' ? mascoteAnim('frustrado') : '<img src="mascote/frustrado.webp" alt="">'}
       <h1>Acabaram <span>as vidas</span></h1>
       <p>Respira, relê a explicação e tenta de novo. Errar aqui é acertar na prova!</p>
       <div class="botoes2">
+        ${erros.length ? `<button class="btn3d branco bt-entender" id="rever">${ic('livro')} REVER O QUE ERREI (${erros.length})</button>` : ''}
         <button class="btn3d" id="denovo">TENTAR DE NOVO</button>
         <button class="btn3d branco" id="volta">VOLTAR PARA A TRILHA</button>
       </div>
     </main>`);
+    if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
     document.getElementById('denovo').onclick = () => jogarLicao(exercicios, { titulo, aoTerminar, bonus });
     document.getElementById('volta').onclick = telaInicio;
   }
@@ -388,8 +472,12 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
         <div class="cx cx-prec"><small>${pct >= 90 ? 'MANDOU BEM' : 'PRECISÃO'}</small><b>${ic('alvo')} ${pct}%</b></div>
         <div class="cx cx-tempo"><small>TEMPO</small><b>${ic('relogio')} ${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}</b></div>
       </div>
-      <button class="btn3d verde" id="cont">CONTINUAR</button>
+      <div class="botoes2">
+        ${erros.length ? `<button class="btn3d branco bt-entender" id="rever">${ic('livro')} REVER O QUE ERREI (${erros.length})</button>` : ''}
+        <button class="btn3d verde" id="cont">CONTINUAR</button>
+      </div>
     </main>`);
+    if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
     contarAte(document.getElementById('xpfim'), ganho);
     if (pct >= 70) confete();
     document.getElementById('cont').onclick = telaInicio;
@@ -397,5 +485,8 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10 }) {
 
   mostrar();
 }
+
+// voltar do navegador com o "Entenda o erro" aberto: some com ele
+window.addEventListener('popstate', () => { document.querySelector('.explica')?.remove(); document.body.style.overflow = ''; });
 
 iniciar();
