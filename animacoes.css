@@ -1,4 +1,4 @@
-/* PROTÓTIPO — prêmios ilustrados (premios/*.webp) e animações no estilo Duolingo */
+/* PROTÓTIPO — prêmios ilustrados (premios/*.webp) e animações */
 
 /* ---------- tamanhos dos prêmios ---------- */
 .premio{display:inline-block;width:1.3em;height:1.3em;object-fit:contain;vertical-align:-.32em;flex:none;user-select:none}

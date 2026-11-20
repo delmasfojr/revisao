@@ -1,4 +1,4 @@
-/* PROTÓTIPO — visual "de jogo" no estilo Duolingo, nas cores do Delmão */
+/* PROTÓTIPO — visual "de jogo" com a identidade do Delmão (navy, laranja, creme, adesivo) */
 :root{--lar2:#C95F00;--navy2:#000a17;--verde2:#14753F;--verm2:#A8261A;--borda:#E3DCCF}
 
 /* botões gordinhos que afundam ao tocar */
@@ -260,6 +260,135 @@ header button .icn{font-size:22px;vertical-align:-.2em}
 .ex-rod{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:2px solid #E5E5E5;padding:14px 16px calc(14px + env(safe-area-inset-bottom))}
 .ex-rod .btn3d{max-width:588px;margin:0 auto}
 @media (prefers-reduced-motion:reduce){.explica,.ex-passos li{animation:none}.ex-card .fr,.ex-card .vs{transition:none}}
+
+/* =====================================================================
+   IDENTIDADE PRÓPRIA (20/11): troca o "degrau" embaixo dos botões por
+   sombra deslocada navy (estilo adesivo, igual ao contorno do mascote),
+   trilha reta com linha tracejada de caderno, nós quadrados arredondados
+   e cinzas da paleta do Delmão.
+   ===================================================================== */
+:root{--sombra:#0F1B2D;--borda:#D9DDE3;--apagado:#8A8F99}
+
+/* botões: borda navy + sombra deslocada para o lado (não o degrau embaixo) */
+.btn3d,.principal{border:2px solid var(--navy);border-radius:12px;box-shadow:3px 3px 0 var(--navy)}
+.btn3d:active:not(:disabled),.principal:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--navy)}
+.btn3d.verde,.btn3d.vermelho{box-shadow:3px 3px 0 var(--navy)}
+.btn3d.branco{border-color:var(--navy);box-shadow:3px 3px 0 var(--navy)}
+.btn3d:disabled{background:var(--creme);color:var(--apagado);border:2px dashed var(--apagado);box-shadow:none}
+.sec{border:2px solid var(--navy);box-shadow:3px 3px 0 var(--navy);border-radius:12px}
+.alt,.modo,.aula{border:2px solid var(--borda);box-shadow:none}
+
+/* trilha: linha reta, tracejada, com as etapas em cima */
+.caminho{padding:40px 0 10px}
+.caminho .linha{--x:0px!important;transform:none;margin:14px 0}
+.caminho::before{content:'';position:absolute;left:50%;top:30px;bottom:30px;margin-left:-2px;border-left:4px dashed var(--borda);z-index:0}
+.no{position:relative;z-index:1;width:70px;height:70px;border-radius:20px;border:4px solid #fff;box-shadow:0 0 0 2px var(--navy),4px 4px 0 2px var(--navy)}
+.no:active{transform:translate(3px,3px);box-shadow:0 0 0 2px var(--navy),1px 1px 0 2px var(--navy)}
+.no.fechado{background:#EEF0F3;color:var(--apagado);box-shadow:0 0 0 2px var(--borda)}
+.no.desafio:not(.fechado){background:#F5B800;box-shadow:0 0 0 2px var(--navy),4px 4px 0 2px var(--navy);border-radius:50%}
+.no.desafio.fechado{border-radius:50%}
+.no.atual{animation:none;outline:3px dashed var(--c);outline-offset:6px}
+.balao-comecar{top:-34px;border:2px solid var(--navy);color:var(--navy);background:var(--lar);color:#fff;font-family:'Anton',Impact,sans-serif;font-weight:400;letter-spacing:1px;box-shadow:2px 2px 0 var(--navy)}
+.balao-comecar::after{border-top-color:var(--navy)}
+.faixa{border:2px solid var(--navy);box-shadow:4px 4px 0 var(--navy)}
+.unidade.cor-navy .faixa{border-color:var(--navy)}
+.masc-trilha{transform:translateX(calc(-50% + var(--lado) * 120px))}
+@media (max-width:420px){.masc-trilha{transform:translateX(calc(-50% + var(--lado) * 105px))}}
+.popover{margin-left:-140px;transform:none;border:2px solid var(--navy);box-shadow:4px 4px 0 var(--navy),0 10px 24px #0F1B2D33}
+.popover::before{left:50%}
+.popover .pop-bt{border:2px solid var(--navy);box-shadow:3px 3px 0 var(--navy)}
+.popover.trancado{border-color:var(--navy);box-shadow:4px 4px 0 var(--navy)}
+.popover.trancado::before{border-bottom-color:var(--navy)}
+
+/* lição: barra de progresso "régua" (sem o brilho), opções estilo cartão */
+.lic-top .fechar{color:var(--apagado)}
+.lic-prog{height:14px;background:#fff;border:2px solid var(--navy);border-radius:6px}
+.lic-prog i{border-radius:3px;background:repeating-linear-gradient(-45deg,var(--lar) 0 8px,#FF8F2A 8px 16px)}
+.lic-prog i::after{display:none}
+.opc{border-radius:12px;box-shadow:none}
+.opc:active:not(:disabled){transform:translate(2px,2px);box-shadow:none}
+.opc .n{border-radius:50%}
+.opc.sel{background:#FFF1E2;border-color:var(--navy);box-shadow:3px 3px 0 var(--lar);color:var(--navy)}
+.opc.sel .n{background:var(--lar);border-color:var(--lar);color:#fff}
+.opc.certa{box-shadow:3px 3px 0 var(--verde)}
+.opc.errada{box-shadow:3px 3px 0 var(--verm)}
+
+/* faixa de retorno: cartão com borda grossa em cima, em vez da faixa chapada */
+.lic-rod{border-top:2px solid var(--borda)}
+.lic-rod.r-ok{background:#EAF7EF;border-top:5px solid var(--verde)}
+.lic-rod.r-no{background:#FDEDEA;border-top:5px solid var(--verm)}
+.rod-msg b{font:24px 'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+
+/* fim da lição: "boletim" em vez das três caixinhas coloridas */
+.caixas{gap:0;border:2px solid var(--navy);border-radius:14px;overflow:hidden;box-shadow:4px 4px 0 var(--navy);background:#fff}
+.cx{border:0;border-radius:0;border-left:2px dashed var(--borda)}
+.cx:first-child{border-left:0}
+.cx small{background:none;color:var(--apagado);padding:10px 2px 0}
+.cx b{padding:4px 2px 12px;font:26px 'Anton',Impact,sans-serif}
+
+/* cards e baralhos no mesmo estilo */
+.revdia-cards{border:2px solid var(--navy);box-shadow:4px 4px 0 var(--lar)}
+.revdia-cards:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--lar)}
+.revdia-cards.vazia{border-color:var(--navy);box-shadow:4px 4px 0 var(--navy)}
+.baralho{box-shadow:none}
+.baralho:active{transform:translate(2px,2px);box-shadow:none}
+.ex-card .fr{box-shadow:3px 3px 0 var(--navy);border-color:var(--navy)}
+.ex-rod{border-top:2px solid var(--borda)}
+.nav-inf button.on{border-color:var(--navy);background:#FFF1E2;box-shadow:2px 2px 0 var(--navy)}
+.nav-inf button.on .icn{filter:none}
+.no.bau{border:0}
+.opc.sel.certa,.opc.certa{background:#E3F6EA;border-color:var(--verde);color:var(--verde2)}
+.opc.sel.errada,.opc.errada{background:#FDE7E4;border-color:var(--verm);color:var(--verm2)}
+.opc.certa .n{background:var(--verde);border-color:var(--verde);color:#fff}
+.opc.errada .n{background:var(--verm);border-color:var(--verm);color:#fff}
+
+/* ---------- avatar do aluno (avatar.js) ---------- */
+img.avatar{display:block;width:100%;height:auto;aspect-ratio:1;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px var(--navy);background:#fff}
+.av-peca img.avatar{max-width:76px}
+.av-cor.trava{display:flex;align-items:center;justify-content:center;color:#fff;opacity:.55}
+.av-cor .icn{font-size:15px}
+.av-credito{font-size:11px;color:var(--apagado);text-align:center;margin:14px 0 0}
+.av-credito a{color:inherit}
+.topo-av{flex:none;width:40px;height:40px;padding:0;border-radius:50%;background:none;box-shadow:2px 2px 0 var(--navy);border:0}
+.topo-av:active{transform:translate(2px,2px);box-shadow:none}
+.nav-inf button span.nav-av{width:30px;height:30px;display:block}
+.nav-inf .nav-av img.avatar{border-width:1.5px}
+.av-voltar{background:none;font-size:24px;padding:4px 8px;color:var(--navy)}
+main.perfil{padding:12px 16px calc(170px + env(safe-area-inset-bottom));max-width:620px;margin:0 auto}
+.av-palco{position:sticky;top:62px;z-index:5;background:var(--creme);display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0 12px}
+.av-palco #av-grande{width:150px;filter:drop-shadow(4px 4px 0 var(--navy))}
+.av-dado{display:flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--navy);border-radius:99px;padding:6px 14px;font-size:14px;font-weight:800;box-shadow:2px 2px 0 var(--navy)}
+.av-dado:active{transform:translate(2px,2px);box-shadow:none}
+.av-abas{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.av-abas::-webkit-scrollbar{display:none}
+.av-abas button{flex:none;background:#fff;border:2px solid var(--borda);border-radius:99px;padding:8px 14px;font-size:14px;font-weight:800;color:var(--apagado)}
+.av-abas button.on{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:2px 2px 0 var(--lar)}
+.av-painel{background:#fff;border:2px solid var(--navy);border-radius:16px;padding:12px;box-shadow:4px 4px 0 var(--navy)}
+.av-painel h3{font:15px 'Anton',Impact,sans-serif;text-transform:uppercase;letter-spacing:.5px;margin:4px 0 8px;color:var(--navy)}
+.av-painel h3 + .av-cores{margin-bottom:14px}
+.av-cores{display:flex;flex-wrap:wrap;gap:10px}
+.av-cor{width:40px;height:40px;padding:0;border-radius:50%;background:var(--cor);border:3px solid #fff;box-shadow:0 0 0 2px var(--borda)}
+.av-cor.on{box-shadow:0 0 0 3px var(--navy),3px 3px 0 3px var(--lar)}
+.av-grade{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.av-painel h3 + .av-grade{margin-bottom:14px}
+.av-peca{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--creme);border:2px solid transparent;border-radius:14px;padding:8px 6px;font-weight:700}
+
+.av-peca small{font-size:12px;line-height:1.2;color:var(--navy);text-align:center}
+.av-peca.on{background:#FFF1E2;border-color:var(--navy);box-shadow:3px 3px 0 var(--lar)}
+.av-peca.trava img{filter:grayscale(1);opacity:.45}
+.av-peca.trava small{color:var(--apagado)}
+.av-peca .icn{font-size:12px;vertical-align:-.1em}
+.av-obs{font-size:13px;color:#556;margin:10px 2px 0}
+.av-obs .icn{vertical-align:-.15em}
+.av-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:18px;border:2px solid var(--navy);border-radius:14px;background:#fff;overflow:hidden}
+.av-stats>div{text-align:center;padding:10px 4px;border-left:2px dashed var(--borda)}
+.av-stats>div:first-child{border-left:0}
+.av-stats b{display:block;font:22px 'Anton',Impact,sans-serif}
+.av-stats b .icn{font-size:20px;vertical-align:-.15em}
+.av-stats small{color:var(--apagado);font-weight:700;font-size:12px}
+.av-sair{display:block;margin:18px auto 0;color:var(--apagado)}
+.av-rod{position:fixed;left:0;right:0;bottom:calc(64px + env(safe-area-inset-bottom));z-index:25;padding:10px 16px;background:linear-gradient(transparent,var(--creme) 30%)}
+.av-rod .btn3d{max-width:588px;margin:0 auto}
 
 /* ---------- Caderno de erros ---------- */
 .caderno{padding-bottom:110px}

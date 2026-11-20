@@ -1,6 +1,6 @@
-// PROTÓTIPO — trilha e lição guiada no estilo Duolingo, com a cara do Delmão.
+// PROTÓTIPO — trilha de estudo e lição guiada, com a cara do Delmão.
 // Fica por cima do app.js: troca a tela inicial por uma trilha de bolinhas e
-// cria a "lição" (perguntas misturadas, VERIFICAR/CONTINUAR, vidas, faixa de retorno).
+// cria a "lição" (perguntas misturadas, CONFERIR/SEGUIR, vidas, faixa de retorno).
 // O resto (Banco de questões, painel, login) continua o mesmo do app.
 
 const VIDAS = 5;
@@ -94,7 +94,7 @@ function barraInferior(ativo) {
     <button data-nav="cards" class="${ativo === 'cards' ? 'on' : ''}"><span>${ic('cards')}${dev ? `<i>${dev > 99 ? '99+' : dev}</i>` : ''}</span>Cards</button>
     <button data-nav="erros" class="${ativo === 'erros' ? 'on' : ''}"><span>${ic('caderno')}${err ? `<i>${err > 99 ? '99+' : err}</i>` : ''}</span>Erros</button>
     <button data-nav="questoes"><span>${ic('questoes')}</span>Questões</button>
-    <button data-nav="sair"><span>${ic('perfil')}</span>Sair</button>
+    <button data-nav="perfil" class="${ativo === 'perfil' ? 'on' : ''}"><span class="nav-av">${avatarSVG(P.avatar)}</span>Perfil</button>
   </nav>`;
 }
 function ligarBarra() {
@@ -103,6 +103,7 @@ function ligarBarra() {
     if (n === 'trilha') telaInicio();
     else if (n === 'cards') telaCards();
     else if (n === 'erros') telaCaderno();
+    else if (n === 'perfil') telaPerfil();
     else if (n === 'questoes') telaFiltroQuestoes(listaAulas().map(a => a.aula));
     else if (n === 'sair' && confirm('Sair da sua conta neste aparelho?')) Backend.sair().then(() => telaLogin());
   });
@@ -111,6 +112,7 @@ function ligarBarra() {
 function topoTrilha() {
   const licoesFeitas = Object.values(P.trilha || {}).reduce((s, n) => s + n, 0);
   return `<div class="topo-trilha">
+      <button class="topo-av" data-nav="perfil" title="Meu avatar">${avatarSVG(P.avatar)}</button>
       <div class="marca">Revisão <span>Delmão</span></div>
       <div class="st" title="Dias seguidos">${premio('fogo')}<b>${sequenciaAtual()}</b></div>
       <div class="st" title="Pontos">${premio('estrela')}<b>${P.xp}</b></div>
@@ -139,7 +141,7 @@ telaInicio = async function () {
         : no.tipo === 'desafio' ? premio('coroa')
         : ic(estado === 'feito' ? 'certo' : 'estrela');
       return `<div class="linha" style="--x:${lado * ZIGUE[i % ZIGUE.length]}px">
-        ${atual ? `<div class="balao-comecar">COMEÇAR</div>` : ''}
+        ${atual ? `<div class="balao-comecar">BORA!</div>` : ''}
         <button class="no ${no.tipo} ${estado} ${atual ? 'atual' : ''}" data-aula="${a.aula}" data-no="${i}" aria-label="${esc(no.nome)}">${icone}</button>
       </div>`;
     }).join('');
@@ -181,8 +183,8 @@ function abrirPopover(b) {
   if (no.tipo === 'desafio') sub = 'Questões no estilo prova, com resolução.';
   if (no.tipo === 'bau') sub = estado === 'feito' ? 'Você já abriu este baú.' : 'Um prêmio por fechar a aula.';
   if (estado === 'fechado') botao = `<div class="pop-trava">${ic('cadeado')} Termine as etapas acima para liberar</div>`;
-  else if (no.tipo === 'bau') botao = estado === 'feito' ? '' : `<button class="pop-bt" data-ir>ABRIR +30 XP</button>`;
-  else botao = `<button class="pop-bt" data-ir>${estado === 'feito' ? 'PRATICAR DE NOVO +5 XP' : `COMEÇAR +${no.tipo === 'desafio' ? 20 : 10} XP`}</button>`;
+  else if (no.tipo === 'bau') botao = estado === 'feito' ? '' : `<button class="pop-bt" data-ir>ABRIR +30 PONTOS</button>`;
+  else botao = `<button class="pop-bt" data-ir>${estado === 'feito' ? 'PRATICAR DE NOVO +5 PONTOS' : `BORA +${no.tipo === 'desafio' ? 20 : 10} PONTOS`}</button>`;
   const pop = document.createElement('div');
   pop.className = 'popover' + (estado === 'fechado' ? ' trancado' : '');
   pop.innerHTML = `<b>${esc(titulo)}</b><p>${esc(sub)}</p>${botao}`;
@@ -203,8 +205,8 @@ function abrirBau(num, idx) {
   tela(`<main class="lic-fim bau-tela">
     <div class="bau-palco" id="palco"><div class="raios"></div>${premio('bau', 'b-fechado')}${premio('bau-aberto', 'b-aberto')}</div>
     <h1 class="depois">Aula ${num} <span>fechada!</span></h1>
-    <p class="fala depois">+<b id="xpbau">0</b> XP PRA CONTA!</p>
-    <button class="btn3d verde depois" id="cont">CONTINUAR</button>
+    <p class="fala depois">+<b id="xpbau">0</b> PONTOS PRA CONTA!</p>
+    <button class="btn3d verde depois" id="cont">SEGUIR</button>
   </main>`);
   // o baú treme, abre, solta estrelas e confete
   setTimeout(() => {
@@ -350,7 +352,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
           <div class="rod-msg" id="msg"></div>
           <div class="rod-bts" id="bts">${e.tipo === 'card'
             ? `<button class="btn3d" id="mostrar">MOSTRAR RESPOSTA</button>`
-            : `<button class="btn3d" id="verificar" disabled>VERIFICAR</button>`}</div>
+            : `<button class="btn3d" id="verificar" disabled>CONFERIR</button>`}</div>
         </div>
       </footer>
     </div>`);
@@ -437,7 +439,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
         mandarParaRevisao(cardsDoAssunto(it));
       }
       document.getElementById('bts').innerHTML = (ok ? '' : `<button class="btn3d branco bt-entender" id="entender">${ic('livro')} COMO RESOLVER</button>`)
-        + `<button class="btn3d ${ok ? 'verde' : 'vermelho'}" id="cont">CONTINUAR</button>`;
+        + `<button class="btn3d ${ok ? 'verde' : 'vermelho'}" id="cont">SEGUIR</button>`;
       document.getElementById('cont').onclick = () => vidas <= 0 ? semVidas() : mostrar();
       if (!ok) document.getElementById('entender').onclick = () => abrirExplicacao([erro], () => document.getElementById('cont')?.focus({ preventScroll: true }));
       document.getElementById('cont').focus({ preventScroll: true });
@@ -474,13 +476,13 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
       <h1>Lição <span>concluída!</span></h1>
       <p class="fala">${pct === 100 ? 'GABARITOU!' : pct >= 70 ? 'TÁ FICANDO FERA!' : 'ERROU? AGORA NÃO ERRA MAIS!'}</p>
       <div class="caixas">
-        <div class="cx cx-xp"><small>TOTAL DE XP</small><b>${premio('estrela')} <span id="xpfim">0</span></b></div>
+        <div class="cx cx-xp"><small>PONTOS</small><b>${premio('estrela')} <span id="xpfim">0</span></b></div>
         <div class="cx cx-prec"><small>${pct >= 90 ? 'MANDOU BEM' : 'PRECISÃO'}</small><b>${ic('alvo')} ${pct}%</b></div>
         <div class="cx cx-tempo"><small>TEMPO</small><b>${ic('relogio')} ${Math.floor(seg / 60)}:${String(seg % 60).padStart(2, '0')}</b></div>
       </div>
       <div class="botoes2">
         ${erros.length ? `<button class="btn3d branco bt-entender" id="rever">${ic('livro')} REVER O QUE ERREI (${erros.length})</button>` : ''}
-        <button class="btn3d verde" id="cont">CONTINUAR</button>
+        <button class="btn3d verde" id="cont">SEGUIR</button>
       </div>
     </main>`);
     if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
