@@ -122,7 +122,6 @@ telaInicio = async function () {
     const A = AULAS[a.aula], nos = nosDa(A), feitos = feitosNa(a.aula), cor = CORES[k % 2], lado = k % 2 ? -1 : 1;
     k++;
     const completa = feitos >= nos.length;
-    const antes = atualMarcado;
     const bolinhas = nos.map((no, i) => {
       const estado = i < feitos ? 'feito' : i === feitos ? 'aberto' : 'fechado';
       const atual = estado === 'aberto' && !atualMarcado;
@@ -139,9 +138,7 @@ telaInicio = async function () {
       <div class="faixa"><div><small>AULA ${a.aula}${completa ? ' · CONCLUÍDA' : ''}</small><b>${esc(A.titulo)}</b></div>
         <button class="guia" data-guia="${a.aula}" title="Modos antigos desta aula">${ic('livro')}</button></div>
       <div class="caminho">${bolinhas}
-        ${!antes && atualMarcado   // na aula em que o aluno está, o Delmão animado acena
-          ? mascoteAnim('acenando', 'masc-trilha').replace('<img ', `<img style="--lado:${-lado}" `)
-          : `<img class="masc-trilha" style="--lado:${-lado}" src="mascote/${['estudando', 'pensando', 'desafiando', 'ideia', 'joinha', 'explicando'][k % 6]}.webp" alt="">`}
+        <img class="masc-trilha" style="--lado:${-lado}" src="mascote/${['estudando', 'pensando', 'desafiando', 'ideia', 'joinha', 'explicando'][k % 6]}.webp" alt="">
       </div>
     </section>`;
   }).join('')).join('');
