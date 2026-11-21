@@ -1,5 +1,0 @@
-DiceBear 9.2.2 (baixado do jsDelivr em 20/11/2026), guardado aqui para o app não depender de site de fora.
-- core.mjs: @dicebear/core (licença MIT, https://github.com/dicebear/dicebear)
-- adventurer.mjs: estilo "Adventurer" de Lisa Wischofsky, licença CC BY 4.0
-  (https://creativecommons.org/licenses/by/4.0/). Exige crédito: está na tela "Meu avatar".
-  Único ajuste: o import aponta para ./core.mjs.

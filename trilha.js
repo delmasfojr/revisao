@@ -94,7 +94,7 @@ function barraInferior(ativo) {
     <button data-nav="cards" class="${ativo === 'cards' ? 'on' : ''}"><span>${ic('cards')}${dev ? `<i>${dev > 99 ? '99+' : dev}</i>` : ''}</span>Cards</button>
     <button data-nav="erros" class="${ativo === 'erros' ? 'on' : ''}"><span>${ic('caderno')}${err ? `<i>${err > 99 ? '99+' : err}</i>` : ''}</span>Erros</button>
     <button data-nav="questoes"><span>${ic('questoes')}</span>Questões</button>
-    <button data-nav="perfil" class="${ativo === 'perfil' ? 'on' : ''}"><span class="nav-av">${avatarSVG(P.avatar)}</span>Perfil</button>
+    <button data-nav="perfil" class="${ativo === 'perfil' ? 'on' : ''}"><span>${ic('grafico')}</span>Progresso</button>
   </nav>`;
 }
 function ligarBarra() {
@@ -103,7 +103,7 @@ function ligarBarra() {
     if (n === 'trilha') telaInicio();
     else if (n === 'cards') telaCards();
     else if (n === 'erros') telaCaderno();
-    else if (n === 'perfil') telaPerfil();
+    else if (n === 'perfil') telaProgresso();
     else if (n === 'questoes') telaFiltroQuestoes(listaAulas().map(a => a.aula));
     else if (n === 'sair' && confirm('Sair da sua conta neste aparelho?')) Backend.sair().then(() => telaLogin());
   });
@@ -112,7 +112,6 @@ function ligarBarra() {
 function topoTrilha() {
   const licoesFeitas = Object.values(P.trilha || {}).reduce((s, n) => s + n, 0);
   return `<div class="topo-trilha">
-      <button class="topo-av" data-nav="perfil" title="Meu avatar">${avatarSVG(P.avatar)}</button>
       <div class="marca">Revisão <span>Delmão</span></div>
       <div class="st" title="Dias seguidos">${premio('fogo')}<b>${sequenciaAtual()}</b></div>
       <div class="st" title="Pontos">${premio('estrela')}<b>${P.xp}</b></div>
