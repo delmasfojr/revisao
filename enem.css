@@ -61,3 +61,43 @@
 .molde-arm li::marker{color:var(--verm)}
 .molde-frase{font:700 18px 'Kalam',cursive;color:var(--lar);transform:rotate(-2deg);margin:10px 0 4px!important}
 .molde-rev{font-size:13px;display:flex;gap:6px;align-items:center;opacity:.85}.molde-rev svg{width:16px;height:16px;flex:none}
+
+/* tela de moldes da ilha */
+.ilha-pop .btn3d+.btn3d{margin-top:8px}
+.btn3d.azul{background:var(--azul);color:var(--navy);border:2px solid var(--navy);box-shadow:3px 3px 0 var(--navy);display:flex;gap:6px;align-items:center;justify-content:center}
+.btn3d.azul svg{width:18px;height:18px}
+.moldes-tela{padding:14px 16px 40px;max-width:620px;margin:auto}
+.moldes-tela .enem-chamada small{display:block;font-size:13px;line-height:1.35}
+.mold{background:#fff;border:2px solid var(--navy);border-radius:16px;box-shadow:3px 3px 0 var(--navy);margin:12px 0;overflow:hidden}
+.mold>summary{list-style:none;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px}
+.mold>summary::-webkit-details-marker{display:none}
+.mold[open]>summary{background:var(--navy);color:#fff}
+.mold-n{font:28px 'Anton',Impact,sans-serif;color:var(--lar);width:28px;text-align:center;flex:none}
+.mold-cab{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}.mold-cab b{font-size:16px;line-height:1.25}.mold-cab small{opacity:.75;font-size:12px}
+.mold-bar{height:8px;background:var(--cinza);border-radius:5px;overflow:hidden}.mold-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--lar),#FFB000)}
+.mold-corpo{padding:2px 14px 16px}
+.mold-corpo h4{font:17px 'Anton',Impact,sans-serif;text-transform:uppercase;margin:16px 0 6px}
+.mold-corpo h4::before{content:'';display:inline-block;width:6px;height:15px;background:var(--lar);border-radius:3px;margin-right:8px;vertical-align:-2px}
+.mold-corpo>p{margin:0 0 6px}
+.mold-quando{display:flex;gap:6px;background:var(--azul);border-radius:12px;padding:8px 10px;font-size:14px}.mold-quando svg{width:18px;height:18px;flex:none;color:var(--lar)}
+.mold-sinais{list-style:none;padding:0;margin:0}.mold-sinais li{position:relative;padding:3px 0 3px 22px}
+.mold-sinais li::before{content:'';position:absolute;left:4px;top:11px;width:9px;height:9px;border-radius:50%;background:var(--lar)}
+.mold-passos{counter-reset:p;list-style:none;padding:0;margin:0}
+.mold-passos li{counter-increment:p;position:relative;padding:5px 0 5px 38px}
+.mold-passos li::before{content:counter(p);position:absolute;left:0;top:4px;width:26px;height:26px;border-radius:50%;background:var(--lar);color:#fff;font:800 14px/26px 'Open Sans';text-align:center}
+.mold-passos small{display:block;opacity:.75;font-size:14px}
+.mold-q{background:var(--creme);border:2px solid var(--cinza);border-radius:14px;padding:10px 12px}.mold-q>p{margin:0 0 6px}
+.mold-alts{list-style:none;padding:0;margin:6px 0 0}
+.mold-alts li{display:flex;gap:10px;align-items:baseline;background:#fff;border:2px solid var(--cinza);border-radius:12px;padding:6px 10px;margin:5px 0}
+.mold-alts li b{color:var(--lar)}.mold-q.revelado .mold-alts li.ok{border-color:var(--verde);background:#E8F6EE}.mold-q.revelado .mold-alts li.ok b{color:var(--verde)}
+.mold-tente{font-size:13px;opacity:.75;margin:0 0 6px}
+.mold-ver{margin-top:10px;display:flex;gap:6px;align-items:center;justify-content:center}.mold-ver svg{width:18px;height:18px}
+.mold-etapas{counter-reset:e;list-style:none;padding:0;margin:12px 0 0 12px;border-left:3px solid var(--lar)}
+.mold-etapas li{counter-increment:e;position:relative;padding:2px 0 10px 22px}
+.mold-etapas li::before{content:counter(e);position:absolute;left:-14px;top:2px;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font:800 13px/24px 'Open Sans';text-align:center}
+.mold-etapas p{margin:2px 0 0}
+.mold-arm{border-left:5px solid var(--verm);background:#FDF0EE;border-radius:0 12px 12px 0;padding:7px 10px;margin:7px 0}
+.mold-arm p{margin:2px 0;font-size:14px}.mold-arm span{font-size:12px;font-weight:800;color:var(--verm)}
+.mold-frase{display:flex;gap:10px;align-items:center;margin:14px 0 6px}.mold-frase img{width:60px}
+.mold-frase span{font:700 18px 'Kalam',cursive;color:var(--lar);transform:rotate(-2deg)}
+.mold-treinar{margin-top:12px}

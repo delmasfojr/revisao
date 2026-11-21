@@ -73,10 +73,12 @@ function abrirIlha(mapa, b) {
   const pop = document.createElement('div'); pop.className = `ilha-pop c-${M_.cor(est, c.id)}`;
   pop.style.top = `${b.offsetTop + b.offsetHeight + 10}px`;
   pop.innerHTML = `<b>${esc(c.titulo)}</b><p>Cai ${vezes(c.peso)} por prova · ${est.n[c.id] ? `você domina ${porcento(est.dom[c.id])}%` : 'você ainda não treinou'}</p>
-    ${ab ? `<button class="btn3d branco" id="treinar">TREINAR</button>` : `<p>${ic('cadeado')} Abre quando você estiver bem em: ${esc(base)}</p>`}`;
+    ${ab ? `<button class="btn3d branco" id="treinar">TREINAR</button>` : `<p>${ic('cadeado')} Abre quando você estiver bem em: ${esc(base)}</p>`}
+    ${c.lancada ? `<button class="btn3d azul" id="moldes">${ic('alvo')} VER OS MOLDES</button>` : ''}`;
   b.parentElement.appendChild(pop);
   pop.onclick = ev => ev.stopPropagation();
   pop.querySelector('#treinar')?.addEventListener('click', () => treinarCasa(mapa, c));
+  pop.querySelector('#moldes')?.addEventListener('click', () => telaMoldes(mapa, c));
 }
 
 async function treinarCasa(mapa, c) {
@@ -192,7 +194,10 @@ topoTrilha = function () {
   return n ? _topoTrilha().replace(/(title="Lições concluídas">[\s\S]*?<b>)(\d+)(<\/b>)/, (m, a, b, c) => a + (+b + n) + c) : _topoTrilha();
 };
 
-// ---- molde da questão (questões por molde): card no "Como resolver" ----
+// ---- moldes (o jeito recorrente de a prova montar a questão de cada assunto) ----
+const passoTxt = p => typeof p === 'string' ? p : p.faca;
+const armTxt = a => typeof a === 'string' ? a : a.erro;
+// card no "Como resolver" de uma questão que tem molde
 function cardDoMolde(it) {
   const m = it && it.molde && AULAS[aulaDoItem(it.id)]?.moldes?.[it.molde];
   if (!m) return '';
@@ -203,9 +208,68 @@ function cardDoMolde(it) {
     ${m.reais ? `<p class="molde-freq">Apareceu em ${m.reais} questões das provas de 2010 a 2025.</p>` : ''}
     ${m.ideia ? `<p>${m.ideia}</p>` : ''}
     ${m.sinais?.length ? `<h4>Como reconhecer</h4>${lista(m.sinais.map(esc), 'ul')}` : ''}
-    ${m.passos?.length ? `<h4>Roteiro</h4>${lista(m.passos, 'ol')}` : ''}
-    ${m.armadilhas?.length ? `<h4>Cuidado com</h4>${lista(m.armadilhas.map(esc), 'ul class="molde-arm"')}` : ''}
+    ${m.passos?.length ? `<h4>Roteiro</h4>${lista(m.passos.map(passoTxt), 'ol')}` : ''}
+    ${m.armadilhas?.length ? `<h4>Cuidado com</h4>${lista(m.armadilhas.slice(0, 2).map(a => esc(armTxt(a))), 'ul class="molde-arm"')}` : ''}
     ${m.frase ? `<p class="molde-frase">${esc(m.frase)}</p>` : ''}
     <p class="molde-rev">${ic('repetir')} Na <b>Revisão do dia</b> vem outra questão desse molde.</p>
   </div>`;
+}
+
+// itens de quiz/questão real de um molde
+function itensDoMolde(A, id) {
+  return [...(A.quiz || []).filter(q => q.molde === id).map(item => ({ tipo: 'quiz', item })),
+          ...(A.questoes || []).filter(q => q.molde === id).map(item => ({ tipo: 'questao', item }))];
+}
+
+// tela "Moldes" da ilha: cada molde com ideia, como reconhecer, passo a passo, exemplo resolvido e armadilhas
+async function telaMoldes(mapa, c) {
+  const A = await tentarEnem(c.id);
+  const ms = Object.entries(A?.moldes || {}).sort((a, b) => b[1].reais - a[1].reais);
+  if (!ms.length) return toast(PREPARANDO_ENEM);
+  history.pushState({ t: 'jogo' }, '');
+  const max = Math.max(...ms.map(([, m]) => m.reais));
+  const exemplo = m => (A.quiz || []).find(q => q.id === m.exemplo);
+  const bloco = ([id, m], n) => {
+    const q = exemplo(m);
+    return `<details class="mold" data-id="${esc(id)}"><summary>
+      <span class="mold-n">${n + 1}</span>
+      <span class="mold-cab"><b>${esc(m.nome)}</b><span class="mold-bar"><i style="width:${Math.round(100 * m.reais / max)}%"></i></span>
+      <small>${m.reais} questões nas provas de 2010 a 2025</small></span></summary>
+      <div class="mold-corpo">
+        <h4>A ideia</h4><p>${m.ideia}</p>
+        ${m.quando ? `<p class="mold-quando">${ic('alvo')} ${m.quando}</p>` : ''}
+        <h4>Como reconhecer</h4><ul class="mold-sinais">${(m.sinais || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+        <h4>Passo a passo</h4><ol class="mold-passos">${(m.passos || []).map(p => `<li><b>${passoTxt(p)}</b>${p.porque ? `<small>${p.porque}</small>` : ''}</li>`).join('')}</ol>
+        ${q ? `<h4>Exemplo resolvido</h4><p class="mold-tente">Tente resolver antes de ver a resolução.</p><div class="mold-q"><p>${q.enunciado}</p>${figuraDe(q)}
+          <ol class="mold-alts">${q.alternativas.map((t, k) => `<li class="${k === q.correta ? 'ok' : ''}"><b>${'ABCDE'[k]}</b><span>${t}</span></li>`).join('')}</ol></div>
+          <button class="btn3d branco mold-ver">${ic('livro')} VER A RESOLUÇÃO</button>
+          <ol class="mold-etapas" hidden>${(m.resolvido || []).map(e => `<li><b>${e.titulo}</b><p>${e.texto}</p></li>`).join('') || `<li><p>${q.resolucao}</p></li>`}</ol>` : ''}
+        <h4>Alternativas-armadilha</h4>${(m.armadilhas || []).map(a => `<div class="mold-arm"><b>${esc(armTxt(a))}</b>${a.como ? `<p>${esc(a.como)}</p>` : ''}${a.vezes ? `<span>caiu ${a.vezes}× nas provas</span>` : ''}</div>`).join('')}
+        ${m.frase ? `<div class="mold-frase"><img src="mascote/ideia.webp" alt=""><span>${esc(m.frase)}</span></div>` : ''}
+        <button class="btn3d mold-treinar">TREINAR ESSE MOLDE</button>
+      </div></details>`;
+  };
+  tela(`<header><button id="voltar" aria-label="Voltar">←</button><div class="marca">Moldes <span>ENEM</span></div></header>
+    <main class="enem moldes-tela">
+      <div class="enem-chamada"><img src="mascote/explicando.webp" alt=""><div><p>Reconheceu o molde, meio caminho andado!</p>
+        <small>A prova cobra ${esc(c.titulo)} de poucos jeitos, que se repetem todo ano. Do que mais cai para o que menos cai:</small></div></div>
+      <h2 class="enem-tit">${esc(c.titulo)}</h2>
+      ${ms.map(bloco).join('')}
+    </main>`);
+  document.getElementById('voltar').onclick = telaPlanoEnem;
+  raiz.querySelectorAll('.mold-ver').forEach(b => b.onclick = () => {
+    const ol = b.nextElementSibling; ol.hidden = !ol.hidden;
+    b.previousElementSibling.classList.toggle('revelado', !ol.hidden);
+    b.innerHTML = `${ic('livro')} ${ol.hidden ? 'VER A RESOLUÇÃO' : 'ESCONDER A RESOLUÇÃO'}`;
+  });
+  raiz.querySelectorAll('.mold-treinar').forEach(b => b.onclick = () => {
+    const id = b.closest('.mold').dataset.id, est = estadoEnem();
+    const exs = embaralhar(itensDoMolde(A, id).filter(e => e.item.id !== A.moldes[id].exemplo)).slice(0, 8);
+    if (!exs.length) return toast('Ainda não há questões desse molde.');
+    jogarLicao(exs, {
+      titulo: A.moldes[id].nome,
+      aoResponder: (it, ok) => { M_.responder(est, c.id, ok); est.vistos[it.id] = ok ? 1 : 0; },
+      aoSair: () => telaMoldes(mapa, c)
+    });
+  });
 }
