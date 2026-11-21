@@ -56,11 +56,12 @@ async function iniciar() {
 }
 
 async function carregarConteudo() {
-  const indice = await Backend.carregarIndice();
+  const indice = await Backend.carregarIndice({ comEnem: true });
   for (const a of indice.blocos.flatMap(b => b.aulas)) {
+    if (a.aula === 'emapa') continue;   // mapa do Plano ENEM: não tem questões
     const A = await Backend.carregarAula(a.aula, indice);
     AULAS[A.aula] = A;
-    for (const x of [...A.cards, ...A.quiz, ...(A.questoes || []), ...A.vf]) ITENS[x.id] = x;
+    for (const x of [...(A.cards || []), ...(A.quiz || []), ...(A.questoes || []), ...(A.vf || [])]) ITENS[x.id] = x;
   }
 }
 

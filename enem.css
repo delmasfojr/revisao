@@ -1,0 +1,51 @@
+/* Plano ENEM — arquipélago */
+.enem{padding-bottom:110px}
+.enem-meta{margin:6px 0 14px;background:#fff;border:2px solid var(--navy);border-radius:14px;padding:10px 12px;box-shadow:3px 3px 0 var(--navy)}
+.enem-meta .bar{height:12px;border-radius:8px;background:#E3E6EB;overflow:hidden;margin-top:6px}
+.enem-meta .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--lar),#FFB000);border-radius:8px;transition:width .8s}
+.enem-chamada{display:flex;gap:10px;align-items:center;background:var(--azul);border:2px solid var(--navy);border-radius:16px;padding:10px}
+.enem-chamada img{width:90px}.enem-chamada p{font:700 16px 'Kalam',cursive;color:var(--lar);margin:0 0 8px}
+.enem-acoes{display:flex;gap:8px}.enem-acoes .btn3d{flex:1}
+.enem-tit{margin-top:18px}.enem-tit span{color:var(--lar)}.enem-sub{margin:-6px 0 6px;opacity:.75;font-size:14px}
+.arquipelago{position:relative;margin:0 auto;max-width:360px}
+.arquipelago .rota{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.arquipelago .rota path{fill:none;stroke:var(--navy);stroke-width:3;stroke-dasharray:6 8;opacity:.3}
+.ilha{position:absolute;left:50%;width:var(--d);height:var(--d);margin-left:calc(var(--d) / -2);transform:translateX(var(--x));
+  border-radius:50%;border:4px solid #fff;box-shadow:0 0 0 2px var(--navy),4px 5px 0 2px var(--navy);color:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px;line-height:1.05;cursor:pointer}
+.ilha .nm{font-weight:800;font-size:clamp(9px,calc(var(--d) / 7.5),13px)}
+.ilha.peq .nm{position:absolute;top:100%;left:50%;transform:translateX(-50%);width:120px;margin-top:8px;font-size:11px;color:var(--navy);text-shadow:0 0 3px var(--creme),0 0 3px var(--creme)}
+.ilha.peq small{display:none}
+.ilha small{font-size:9px;font-weight:600;opacity:.95}
+.ilha.c-verde{background:var(--verde)}.ilha.c-amarelo{background:#F5B700;color:var(--navy)}
+.ilha.c-vermelho{background:var(--verm)}.ilha.c-cinza{background:#C9CED6;color:var(--navy)}
+.ilha.fechada{opacity:.55}.ilha .cad{position:absolute;bottom:-8px;right:-4px;background:#fff;border-radius:50%;padding:3px;border:2px solid var(--navy)}
+.ilha .bandeira{position:absolute;top:-16px;right:6px;width:4px;height:22px;background:var(--navy)}
+.ilha .bandeira::after{content:'';position:absolute;left:4px;top:0;border-left:14px solid var(--lar);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.ilha.alvo{animation:pulsa 1.6s ease-in-out infinite}
+@keyframes pulsa{50%{box-shadow:0 0 0 2px var(--navy),4px 5px 0 2px var(--navy),0 0 0 10px rgba(217,58,43,.25)}}
+@media (prefers-reduced-motion:reduce){.ilha.alvo{animation:none}}
+.ilha-pop{position:absolute;left:50%;transform:translateX(-50%);width:270px;z-index:20;border:2px solid var(--navy);border-radius:16px;
+  padding:12px 14px;background:#fff;box-shadow:4px 4px 0 var(--navy)}
+.ilha-pop b{font-size:17px}.ilha-pop p{margin:6px 0;font-size:14px}.ilha-pop .btn3d{width:100%}
+.ilha-pop.c-vermelho{border-top:8px solid var(--verm)}.ilha-pop.c-amarelo{border-top:8px solid #F5B700}
+.ilha-pop.c-verde{border-top:8px solid var(--verde)}.ilha-pop.c-cinza{border-top:8px solid #C9CED6}
+.enem-breve{text-align:center;opacity:.6;font-weight:700}
+.nivel-escolha{text-align:center}.nivel-escolha .masc{width:120px}
+.nivel-op{display:block;width:100%;margin:10px 0;padding:14px;border:2px solid var(--navy);border-radius:16px;background:#fff;box-shadow:0 4px 0 var(--navy);text-align:left}
+.nivel-op b{display:block;font:20px 'Anton',Impact,sans-serif;text-transform:uppercase}.nivel-op span{opacity:.75}
+.nivel-cont{font-weight:800;min-width:48px;text-align:right}
+.enem-top{text-align:left;max-width:360px;margin:10px auto 18px;padding-left:22px}
+.enem-top li{margin:8px 0;padding:8px 10px;border-radius:12px;border:2px solid var(--navy);background:#fff}
+.enem-top li small{display:block;opacity:.75}
+.enem-top li.c-vermelho{border-left:8px solid var(--verm)}.enem-top li.c-amarelo{border-left:8px solid #F5B700}.enem-top li.c-verde{border-left:8px solid var(--verde)}
+
+/* imagens de questões reais: largura total, legíveis a 375 px; toque abre a imagem ampliada */
+.figura.enem-real{padding:6px}
+.figura.enem-real img{width:100%;height:auto;max-height:none;cursor:zoom-in}
+.figura.enem-real figcaption{font-size:11px}
+.ex-card .figura.enem-real,.ex-dentro .figura.enem-real{max-height:none;overflow:visible}
+.enem-zoom{position:fixed;inset:0;z-index:2000;background:rgba(15,27,45,.94)}
+.enem-zoom .zoom-rolagem{position:absolute;inset:0;overflow:auto;padding:56px 8px 24px;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+.enem-zoom img{display:block;width:auto;max-width:none;min-width:100%;margin:0 auto;background:#fff;border-radius:6px}
+.enem-zoom .fechar{position:fixed;top:10px;right:10px;z-index:2;width:44px;height:44px;border-radius:50%;background:#fff;color:var(--navy);border:2px solid var(--navy)}

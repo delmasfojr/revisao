@@ -91,6 +91,7 @@ function barraInferior(ativo) {
   const err = contarCaderno();
   return `<nav class="nav-inf">
     <button data-nav="trilha" class="${ativo === 'trilha' ? 'on' : ''}"><span>${ic('casa')}</span>Trilha</button>
+    <button data-nav="enem" class="${ativo === 'enem' ? 'on' : ''}"><span>${ic('alvo')}</span>ENEM</button>
     <button data-nav="cards" class="${ativo === 'cards' ? 'on' : ''}"><span>${ic('cards')}${dev ? `<i>${dev > 99 ? '99+' : dev}</i>` : ''}</span>Cards</button>
     <button data-nav="erros" class="${ativo === 'erros' ? 'on' : ''}"><span>${ic('caderno')}${err ? `<i>${err > 99 ? '99+' : err}</i>` : ''}</span>Erros</button>
     <button data-nav="questoes"><span>${ic('questoes')}</span>Questões</button>
@@ -101,6 +102,7 @@ function ligarBarra() {
   raiz.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => {
     const n = b.dataset.nav;
     if (n === 'trilha') telaInicio();
+    else if (n === 'enem') telaPlanoEnem();
     else if (n === 'cards') telaCards();
     else if (n === 'erros') telaCaderno();
     else if (n === 'perfil') telaProgresso();
@@ -314,7 +316,7 @@ function abrirExplicacao(erros, aoFechar) {
 
 // ---------- a lição ----------
 // vidas: Infinity = sem vidas (Caderno de erros); sair: tela para onde volta ao terminar ou sair
-function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIniciais = VIDAS, sair = telaInicio }) {
+function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIniciais = VIDAS, aoResponder, aoSair, sair = aoSair || telaInicio }) {
   history.pushState({ t: 'jogo' }, '');
   const fila = [...exercicios], total = exercicios.length, jaErrou = new Set(), erros = [];
   let feitos = 0, acertosDePrimeira = 0, vidas = vidasIniciais, seguidas = 0, xp = 0;
@@ -328,7 +330,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
     const repetida = jaErrou.has(it.id) ? `<div class="lic-tipo repetida">${ic('repetir')} ERRO ANTERIOR</div>` : `<div class="lic-tipo t-${e.tipo}">${rotulo[0]} ${rotulo[1]}</div>`;
     let corpo = '';
     if (e.tipo === 'quiz' || e.tipo === 'questao') {
-      const ordem = embaralhar(it.alternativas.map((t, k) => ({ t, k })));
+      const altOrdem = it.alternativas.map((t, k) => ({ t, k })), ordem = /^e\d+-r/.test(it.id) ? altOrdem : embaralhar(altOrdem);   // questão real do ENEM: A–E na ordem da prova
       corpo = `<h2 class="lic-perg">${it.enunciado}</h2>${figuraDe(it)}
         <div class="opcoes">${ordem.map((o, n) => `<button class="opc" data-k="${o.k}"><span class="n">${n + 1}</span><span>${o.t}</span></button>`).join('')}</div>`;
     } else if (e.tipo === 'vf') {
@@ -363,7 +365,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
       const aberta = document.querySelector('.explica');
       if (aberta) { if (ev.key === 'Escape') aberta.querySelector('[data-x]').click(); return; }   // "Entenda o erro" aberto: Enter fica com o botão dele
       if (ev.key === 'Enter') { const b = raiz.querySelector('#cont') || raiz.querySelector('.rod-bts button:not([disabled])'); if (b) { ev.preventDefault(); b.click(); } return; }
-      const n = +ev.key; if (!respondido && n >= 1 && n <= 4) raiz.querySelectorAll('.opc')[n - 1]?.click();
+      const n = +ev.key; if (!respondido && n >= 1 && n <= 5) raiz.querySelectorAll('.opc')[n - 1]?.click();
     };
     document.addEventListener('keydown', teclas);
     pararJogo = () => document.removeEventListener('keydown', teclas);
@@ -401,6 +403,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
         if (e.tipo === 'card') atualizarCaixa(it.id, ok);
         if (e.tipo === 'questao') { P.q ||= {}; P.q[it.id] = { ok, n: (P.q[it.id]?.n || 0) + 1 }; }
         if (e.tipo === 'quiz' || e.tipo === 'vf') marcarVisto(it.id, ok);
+        if (aoResponder) aoResponder(it, ok);
       }
       if (ok) { if (primeira) acertosDePrimeira++; feitos++; seguidas++; xp += primeira ? 2 : 1; som('ok'); }
       else {
@@ -459,7 +462,7 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
       </div>
     </main>`);
     if (erros.length) document.getElementById('rever').onclick = () => abrirExplicacao(erros);
-    document.getElementById('denovo').onclick = () => jogarLicao(exercicios, { titulo, aoTerminar, bonus, vidas: vidasIniciais, sair });
+    document.getElementById('denovo').onclick = () => jogarLicao(exercicios, { titulo, aoTerminar, bonus, vidas: vidasIniciais, aoResponder, aoSair, sair });
     document.getElementById('volta').onclick = sair;
   }
 

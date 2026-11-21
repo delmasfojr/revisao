@@ -71,14 +71,17 @@ const Backend = (() => {
   }
 
   // ---------- conteúdo das aulas ----------
+  const PLANO_ENEM = 'Plano ENEM';
   // Online, o conteúdo fica no banco e só quem tem acesso lê (os arquivos de dados/ não são publicados).
   // No modo teste (e no PC do professor), vem dos arquivos de dados/.
-  async function carregarIndice() {
+  // O Plano ENEM (bloco 'Plano ENEM') fica fora da trilha normal; só o painel pede junto (comEnem).
+  async function carregarIndice({ comEnem = false } = {}) {
     if (!online) return (await fetch('dados/indice.json')).json();
     const { data, error } = await sb.from('conteudo').select('aula, ordem, bloco, titulo').order('ordem');
     if (error) throw error;
     const blocos = [];
     for (const r of data) {
+      if (r.bloco === PLANO_ENEM && !comEnem) continue;
       let b = blocos.find(x => x.nome === r.bloco);
       if (!b) blocos.push(b = { nome: r.bloco, aulas: [] });
       b.aulas.push({ aula: r.aula, titulo: r.titulo });
@@ -106,8 +109,9 @@ const Backend = (() => {
     const { error } = await sb.from('conteudo').upsert(linhas, { onConflict: 'aula' });
     if (error) throw error;
     // tira do banco as aulas que saíram do índice
-    const { data } = await sb.from('conteudo').select('aula');
-    const sobra = (data || []).map(r => r.aula).filter(x => !linhas.some(l => l.aula === x));
+    // (o Plano ENEM não está no indice.json: é enviado pelo publicar_aulas.py e não sai daqui)
+    const { data } = await sb.from('conteudo').select('aula, bloco');
+    const sobra = (data || []).filter(r => r.bloco !== PLANO_ENEM).map(r => r.aula).filter(x => !linhas.some(l => l.aula === x));
     if (sobra.length) await sb.from('conteudo').delete().in('aula', sobra);
     return linhas.length;
   }
