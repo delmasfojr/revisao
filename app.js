@@ -418,7 +418,8 @@ function jogarVF(A) {
   const t0 = performance.now(); let tq = t0, vivo = true, travado = false, raf = 0, to = 0;
   const atual = () => baralho[pos];
   const proxima = () => {
-    pos++; if (pos >= baralho.length) { baralho = embaralhar(A.vf); pos = 0; }
+    // cada frase aparece uma vez só: acabou o baralho, acabou a rodada (com bônus pelo tempo que sobrou)
+    pos++; if (pos >= baralho.length) return fim(true);
     card.className = 'vf-card'; card.innerHTML = atual().afirmacao; tq = performance.now(); travado = false;
   };
   card.innerHTML = atual().afirmacao;
@@ -447,11 +448,14 @@ function jogarVF(A) {
   };
   pararJogo = () => { vivo = false; cancelAnimationFrame(raf); clearTimeout(to); document.removeEventListener('keydown', tecla); };
   tick();
-  function fim() {
+  function fim(todas) {
+    if (!vivo) return;
+    const sobra = Math.max(0, Math.ceil((TEMPO - (performance.now() - t0)) / 1000));
     pararJogo(); pararJogo = () => {};
+    if (todas) pontos += sobra;
     const chave = 'vf-' + A.aula, rec = pontos > (P.recordes[chave] || 0);
     if (rec) { P.recordes[chave] = pontos; salvar(); }
-    telaFim(pontos, `${acertos} de ${total} certas`, rec, erradas.map(s => ({ t: s.afirmacao, e: `${s.verdadeira ? 'VERDADE' : 'MENTIRA'}. ${s.explicacao}` })), () => jogarVF(A), A.aula);
+    telaFim(pontos, `${acertos} de ${total} certas` + (todas ? ` · respondeu todas as frases (+${sobra} de bônus pelo tempo)` : ''), rec, erradas.map(s => ({ t: s.afirmacao, e: `${s.verdadeira ? 'VERDADE' : 'MENTIRA'}. ${s.explicacao}` })), () => jogarVF(A), A.aula);
   }
 }
 
