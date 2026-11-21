@@ -331,9 +331,9 @@ function jogarLicao(exercicios, { titulo, aoTerminar, bonus = 10, vidas: vidasIn
     const repetida = jaErrou.has(it.id) ? `<div class="lic-tipo repetida">${ic('repetir')} ERRO ANTERIOR</div>` : `<div class="lic-tipo t-${e.tipo}">${rotulo[0]} ${rotulo[1]}</div>`;
     let corpo = '';
     if (e.tipo === 'quiz' || e.tipo === 'questao') {
-      const altOrdem = it.alternativas.map((t, k) => ({ t, k })), ordem = /^e\d+-r/.test(it.id) ? altOrdem : embaralhar(altOrdem);   // questão real do ENEM: A–E na ordem da prova
+      const altOrdem = it.alternativas.map((t, k) => ({ t, k })), enemAB = /^e\d\d-[qir]/.test(it.id), ordem = enemAB ? altOrdem : embaralhar(altOrdem);   // Plano ENEM: A–E na ordem (o gabarito comentado cita as letras)
       corpo = `<h2 class="lic-perg">${it.enunciado}</h2>${figuraDe(it)}
-        <div class="opcoes">${ordem.map((o, n) => `<button class="opc" data-k="${o.k}"><span class="n">${n + 1}</span><span>${o.t}</span></button>`).join('')}</div>`;
+        <div class="opcoes">${ordem.map((o, n) => `<button class="opc" data-k="${o.k}"><span class="n">${enemAB ? 'ABCDE'[n] : n + 1}</span><span>${o.t}</span></button>`).join('')}</div>`;
     } else if (e.tipo === 'vf') {
       corpo = `<div class="fala-masc"><img src="mascote/desafiando.webp" alt=""><div class="balao">${it.afirmacao}</div></div>${figuraDe(it)}
         <div class="opcoes vf2"><button class="opc" data-k="0"><span class="n">1</span><span>${ic('xis')} Mentira</span></button><button class="opc" data-k="1"><span class="n">2</span><span>${ic('certo')} Verdade</span></button></div>`;

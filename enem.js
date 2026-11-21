@@ -46,6 +46,7 @@ async function telaPlanoEnem() {
     <div class="enem-meta"><b>Você domina ${M_.dominioGeral(mapa, est)}%</b> do que mais cai<div class="bar"><i style="width:${M_.dominioGeral(mapa, est)}%"></i></div></div>
     ${semNivel ? `<div class="enem-chamada"><img src="mascote/desafiando.webp" alt=""><div><p>Faça o nivelamento para eu montar seu plano!</p><button class="btn3d" id="nivel">FAZER NIVELAMENTO</button></div></div>`
       : `<div class="enem-acoes"><button class="btn3d verde" id="rev">${ic('repetir')} REVISÃO DO DIA</button><button class="btn3d branco" id="nivel">REFAZER NIVELAMENTO</button></div>`}
+    <button class="banco-entrada" id="banco"><img src="mascote/desafiando.webp" alt=""><span><b>Questões estilo ENEM</b><small>Escolha o assunto e resolva no formato da prova, com gabarito comentado.</small></span></button>
     <h2 class="enem-tit">Seu <span>arquipélago</span></h2><p class="enem-sub">Ilha grande = cai muito. Conquiste as vermelhas primeiro!</p>
     <div class="arquipelago" style="height:${y + 20}px"><svg class="rota" aria-hidden="true"></svg>${ilhas}</div>
     ${embreve ? `<p class="enem-breve">+ ${embreve} ilhas em breve</p>` : ''}
@@ -53,6 +54,7 @@ async function telaPlanoEnem() {
   ligarBarra();
   desenharRota();
   document.getElementById('nivel').onclick = telaNivelamento;
+  document.getElementById('banco').onclick = () => telaBancoEnem(mapa);
   document.getElementById('rev')?.addEventListener('click', () => jogarRevisaoEnem(mapa));
   raiz.querySelectorAll('.ilha').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirIlha(mapa, b); });
   raiz.querySelector('.arquipelago').onclick = () => raiz.querySelectorAll('.ilha-pop').forEach(p => p.remove());
@@ -273,3 +275,78 @@ async function telaMoldes(mapa, c) {
     });
   });
 }
+
+// ---- banco de questões estilo ENEM: por assunto, no formato da prova ----
+function questoesDaCasa(A) {
+  return [...(A.quiz || []).map(item => ({ tipo: 'quiz', item })), ...(A.questoes || []).map(item => ({ tipo: 'questao', item }))];
+}
+function placarCasa(A) {
+  const est = estadoEnem(), qs = questoesDaCasa(A), feitas = qs.filter(e => est.vistos[e.item.id] !== undefined);
+  return { total: qs.length, feitas: feitas.length, certas: feitas.filter(e => est.vistos[e.item.id] === 1).length };
+}
+async function telaBancoEnem(mapa) {
+  history.pushState({ t: 'jogo' }, '');
+  const est = estadoEnem(), casas = M_.ordemPlano(mapa, est).filter(c => c.lancada);
+  tela(`<header><button id="voltar" aria-label="Voltar">←</button><div class="marca">Questões <span>ENEM</span></div></header>
+    <main class="enem banco"><h1>Questões estilo <span>ENEM</span></h1>
+    <p class="enem-sub">Os assuntos que mais caem, na ordem do seu plano. Cada um tem questões das provas e questões inéditas montadas nos mesmos moldes.</p>
+    <div id="lista"><p>Carregando…</p></div></main>`);
+  document.getElementById('voltar').onclick = telaPlanoEnem;
+  const dados = await Promise.all(casas.map(c => tentarEnem(c.id)));
+  const lista = document.getElementById('lista');
+  if (!lista) return;   // o aluno saiu enquanto carregava
+  lista.innerHTML = casas.map((c, i) => {
+    const A = dados[i]; if (!A) return '';
+    const p = placarCasa(A), pct = p.feitas ? Math.round(100 * p.certas / p.feitas) : 0;
+    return `<button class="banco-casa c-${M_.cor(est, c.id)}" data-i="${i}"><b>${esc(c.titulo)}</b>
+      <small>${p.total} questões · cai ${vezes(c.peso)} por prova</small>
+      <span class="banco-bar"><i style="width:${Math.round(100 * p.feitas / p.total)}%"></i></span>
+      <small>${p.feitas ? `Você fez ${p.feitas} e acertou ${pct}%` : 'Você ainda não fez nenhuma'}</small></button>`;
+  }).join('');
+  lista.querySelectorAll('.banco-casa').forEach(b => b.onclick = () => telaBancoCasa(mapa, casas[+b.dataset.i], dados[+b.dataset.i]));
+}
+function telaBancoCasa(mapa, c, A) {
+  history.pushState({ t: 'jogo' }, '');
+  const est = estadoEnem(), todas = questoesDaCasa(A);
+  const ms = Object.entries(A.moldes || {}).sort((a, b) => b[1].reais - a[1].reais);
+  tela(`<header><button id="voltar" aria-label="Voltar">←</button><div class="marca">Questões <span>ENEM</span></div></header>
+    <main class="enem banco"><span class="chip">${esc(c.titulo)}</span><h1>Monte sua <span>lista</span></h1>
+    <label for="fm">Molde</label><select id="fm" class="sel"><option value="">Todos os moldes</option>
+      ${ms.map(([id, m]) => `<option value="${esc(id)}">${esc(m.nome)}</option>`).join('')}</select>
+    <label for="fo">De onde</label><select id="fo" class="sel"><option value="">Todas</option>
+      <option value="prova">Só questões das provas (2010 a 2025)</option><option value="ineditas">Só questões inéditas</option></select>
+    <label for="fs">Quais</label><select id="fs" class="sel"><option value="todas">Todas</option>
+      <option value="novas">Só as que nunca fiz</option><option value="erradas">Só as que errei</option></select>
+    <label for="fn">Quantas</label><select id="fn" class="sel"><option value="10">10 questões</option><option value="20">20 questões</option><option value="999">Todas do filtro</option></select>
+    <p id="qtd" class="banco-qtd"></p>
+    <button class="btn3d" id="ir">COMEÇAR</button>
+    ${ms.length ? `<button class="btn3d azul banco-moldes" id="moldes">${ic('alvo')} VER OS MOLDES DESSE ASSUNTO</button>` : ''}
+    </main>`);
+  const $ = id => document.getElementById(id);
+  const filtrar = () => todas.filter(e => {
+    const v = est.vistos[e.item.id];
+    return (!$('fm').value || e.item.molde === $('fm').value)
+      && (!$('fo').value || ($('fo').value === 'prova') === (e.tipo === 'questao'))
+      && ($('fs').value === 'todas' || ($('fs').value === 'novas' ? v === undefined : v === 0));
+  });
+  const contar = () => { const n = filtrar().length; $('qtd').textContent = `${n} ${n === 1 ? 'questão' : 'questões'} nesse filtro.`; $('ir').disabled = !n; };
+  ['fm', 'fo', 'fs'].forEach(id => $(id).onchange = contar); contar();
+  $('voltar').onclick = () => telaBancoEnem(mapa);
+  $('moldes')?.addEventListener('click', () => telaMoldes(mapa, c));
+  $('ir').onclick = () => {
+    const lista = embaralhar(filtrar()).slice(0, +$('fn').value);
+    jogarLicao(lista, {
+      titulo: `${c.titulo} · estilo ENEM`, vidas: Infinity, bonus: 10,
+      aoResponder: (it, ok) => { M_.responder(est, c.id, ok); est.vistos[it.id] = ok ? 1 : 0; },
+      aoSair: () => telaBancoCasa(mapa, c, A)
+    });
+  };
+}
+
+// as questões do Plano ENEM ficam só na parte do ENEM: fora do Caderno de erros geral
+// (o aluno refaz os erros delas no banco "Questões estilo ENEM", filtro "Só as que errei")
+const ehDoEnem = id => /^e\d\d-/.test(String(id));
+const _errosDoCaderno = errosDoCaderno;
+errosDoCaderno = () => _errosDoCaderno().filter(x => !ehDoEnem(x.id));
+const _anotarNoCaderno = anotarNoCaderno;
+anotarNoCaderno = (id, tipo, acertou) => { if (!ehDoEnem(id)) _anotarNoCaderno(id, tipo, acertou); };

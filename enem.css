@@ -101,3 +101,16 @@
 .mold-frase{display:flex;gap:10px;align-items:center;margin:14px 0 6px}.mold-frase img{width:60px}
 .mold-frase span{font:700 18px 'Kalam',cursive;color:var(--lar);transform:rotate(-2deg)}
 .mold-treinar{margin-top:12px}
+
+/* banco de questões estilo ENEM */
+.banco-entrada{display:flex;gap:12px;align-items:center;width:100%;margin:14px 0 4px;background:var(--navy);color:#fff;border:0;border-radius:18px;padding:12px 14px;text-align:left;box-shadow:0 4px 0 #000;cursor:pointer;font:inherit}
+.banco-entrada img{width:64px;flex:none}.banco-entrada b{display:block;font:22px 'Anton',Impact,sans-serif;text-transform:uppercase;color:var(--lar)}
+.banco-entrada small{font-size:13px;opacity:.9}
+.banco{padding:14px 16px 40px;max-width:620px;margin:auto}
+.banco-casa{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--navy);border-left-width:8px;border-radius:14px;box-shadow:3px 3px 0 var(--navy);padding:10px 12px;margin:10px 0;font:inherit;color:var(--navy);cursor:pointer}
+.banco-casa b{font-size:17px;display:block}.banco-casa small{display:block;font-size:13px;opacity:.75}
+.banco-casa.c-vermelho{border-left-color:var(--verm)}.banco-casa.c-amarelo{border-left-color:#F5B700}.banco-casa.c-verde{border-left-color:var(--verde)}.banco-casa.c-cinza{border-left-color:#C9CED6}
+.banco-bar{display:block;height:8px;background:var(--cinza);border-radius:5px;overflow:hidden;margin:6px 0 4px}.banco-bar i{display:block;height:100%;background:var(--verde)}
+.banco label{display:block;font-weight:800;margin:12px 0 4px}
+.banco-qtd{margin:14px 0 8px;font-weight:700}
+.banco-moldes{margin-top:10px}
