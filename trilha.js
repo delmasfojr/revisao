@@ -298,6 +298,7 @@ function abrirExplicacao(erros, aoFechar) {
       </div>
       ${passos.length ? `<h3 class="ex-h">Como resolver</h3>
       <ol class="ex-passos">${passos.map(p => `<li>${p}</li>`).join('')}</ol>` : ''}
+      ${typeof cardDoMolde === 'function' ? cardDoMolde(it) : ''}
       ${cards.length ? `<h3 class="ex-h">Relembre o assunto <span>${esc(it.topico)}</span></h3>
       <p class="ex-sub">Toque no card para virar. Eles também entraram na sua <b>Revisão do dia</b>.</p>
       <div class="ex-cards">${cards.map((c, k) => `<button class="ex-card" data-card="${k}">

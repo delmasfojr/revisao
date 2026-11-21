@@ -105,11 +105,14 @@
       .filter(c => aberta(mapa, est, c.id) && est.n[c.id] && !(est.prox[c.id] > agora) && (itensPorCasa[c.id] || []).length);
     const filas = casas.map(c => {
       const its = itensPorCasa[c.id];
-      const errados = new Set(its.filter(it => est.vistos[it.id] === 0 && it.topico != null).map(it => it.topico));
-      // 0 = inédita de um tópico que ele errou (nova versão) · 1 = a própria errada · 2 = inédita · 3 = já acertada
+      const errou = its.filter(it => est.vistos[it.id] === 0);
+      const errados = new Set(errou.filter(it => it.topico != null).map(it => it.topico));
+      const moldes = new Set(errou.filter(it => it.molde).map(it => it.molde));
+      // 0 = inédita do MESMO MOLDE de uma que ele errou · 0.5 = inédita do mesmo tópico · 1 = a própria errada
+      // 2 = inédita · 3 = já acertada
       const peso = it => {
         const v = est.vistos[it.id];
-        if (v === undefined) return it.topico != null && errados.has(it.topico) ? 0 : 2;
+        if (v === undefined) return it.molde && moldes.has(it.molde) ? 0 : it.topico != null && errados.has(it.topico) ? 0.5 : 2;
         return v === 0 ? 1 : 3;
       };
       return [...its].sort((a, b) => peso(a) - peso(b));

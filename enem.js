@@ -191,3 +191,21 @@ topoTrilha = function () {
   const n = Object.values(P.enem?.trilha || {}).reduce((t, x) => t + x, 0);
   return n ? _topoTrilha().replace(/(title="Lições concluídas">[\s\S]*?<b>)(\d+)(<\/b>)/, (m, a, b, c) => a + (+b + n) + c) : _topoTrilha();
 };
+
+// ---- molde da questão (questões por molde): card no "Como resolver" ----
+function cardDoMolde(it) {
+  const m = it && it.molde && AULAS[aulaDoItem(it.id)]?.moldes?.[it.molde];
+  if (!m) return '';
+  const lista = (xs, tag) => xs.length ? `<${tag}>${xs.map(x => `<li>${x}</li>`).join('')}</${tag}>` : '';
+  return `<div class="molde-card">
+    <span class="molde-selo">${ic('alvo')} ESSE É UM MOLDE QUE CAI</span>
+    <h3>${esc(m.nome)}</h3>
+    ${m.reais ? `<p class="molde-freq">Apareceu em ${m.reais} questões das provas de 2010 a 2025.</p>` : ''}
+    ${m.ideia ? `<p>${m.ideia}</p>` : ''}
+    ${m.sinais?.length ? `<h4>Como reconhecer</h4>${lista(m.sinais.map(esc), 'ul')}` : ''}
+    ${m.passos?.length ? `<h4>Roteiro</h4>${lista(m.passos, 'ol')}` : ''}
+    ${m.armadilhas?.length ? `<h4>Cuidado com</h4>${lista(m.armadilhas.map(esc), 'ul class="molde-arm"')}` : ''}
+    ${m.frase ? `<p class="molde-frase">${esc(m.frase)}</p>` : ''}
+    <p class="molde-rev">${ic('repetir')} Na <b>Revisão do dia</b> vem outra questão desse molde.</p>
+  </div>`;
+}
