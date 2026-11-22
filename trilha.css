@@ -427,3 +427,32 @@ main.progresso{padding:12px 16px calc(110px + env(safe-area-inset-bottom));max-w
 @keyframes desce-conq{from{translate:-50% -120%}}
 @keyframes gira-med{0%{transform:scale(.3) rotate(-160deg)}70%{transform:scale(1.15) rotate(10deg)}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.faixa-conq,.faixa-conq .medalha{animation:none}}
+
+/* =====================================================================
+   CELULAR (22/11): nada pode passar da largura da tela nem ficar
+   escondido atrás da faixa de baixo.
+   ===================================================================== */
+/* lição: faixa de baixo "gruda" no fim da tela, mas ocupa espaço próprio
+   (antes era fixa e cobria o fim da questão quando a explicação crescia) */
+.lic{min-height:100dvh}
+.lic-rod{position:sticky}
+.lic-corpo{padding-bottom:28px;min-width:0}
+.lic-perg,.balao,.opc,.verso-card,.ex-perg,.ex-passos li,.ex-resp span,.rod-msg{overflow-wrap:anywhere}
+.rod-msg .explic-txt{max-height:none;overflow:visible}
+/* Mentira | Verdade: as duas colunas podem encolher */
+.opcoes.vf2{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:400px){
+  .opcoes.vf2 .opc{gap:6px;padding:18px 6px;font-size:17px}
+  .opcoes.vf2 .opc .n{display:none}
+  .fala-masc img{width:80px}
+}
+/* flashcard: cresce com o texto (antes tinha altura fixa e cortava) */
+.flash{height:auto;min-height:min(58vh,420px)}
+.flash .dentro{display:grid;height:auto;min-height:inherit}
+.flash .face{position:relative;inset:auto;grid-area:1/1;padding-bottom:44px;overflow-wrap:anywhere}
+/* cards do "Como resolver": idem, e a figura aparece inteira */
+.ex-card{display:grid;min-height:190px}
+.ex-card .fr,.ex-card .vs{position:relative;inset:auto;grid-area:1/1;overflow-wrap:anywhere}
+.ex-card .figura{max-height:none;overflow:visible;width:100%}
+.ex-card .figura svg{max-height:160px}
+.ex-dentro{padding-bottom:calc(110px + env(safe-area-inset-bottom))}
