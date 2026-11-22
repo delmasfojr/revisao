@@ -97,7 +97,8 @@ async function depoisDeEntrar() {
   P = (await Backend.carregarProgresso()) || progressoVazio();
   P.itens ||= {}; P.recordes ||= {}; P.q ||= {};
   Backend.enviarFila();
-  telaInicio();
+  if (typeof telaMeuDia === 'function') Promise.resolve().then(() => telaMeuDia()).catch(e => { console.error(e); telaInicio(); });
+  else telaInicio();
 }
 
 function telaLogin() {

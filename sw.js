@@ -1,6 +1,6 @@
 /* Guarda as telas e os cards para o app abrir mesmo com internet ruim.
    Sempre tenta a versão nova primeiro; sem internet, usa a guardada. */
-const CACHE = 'revisao-v2';
+const CACHE = 'revisao-v3';
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil((async () => {
   for (const k of await caches.keys()) if (k !== CACHE) await caches.delete(k);
