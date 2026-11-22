@@ -21,6 +21,8 @@ function rotuloIlha(c, cr, ab) {
 // "vez" / "vezes" por prova (1,0 ou menos = singular)
 function vezes(peso) { return `${peso.toFixed(1).replace('.', ',')} ${peso <= 1 ? 'vez' : 'vezes'}`; }
 function porcento(x) { return Math.round(100 * x); }
+// o professor vê todas as ilhas abertas (o aluno segue a regra de pré-requisito do motor)
+function ilhaAberta(mapa, est, id) { return ACESSO === 'professor' || M_.aberta(mapa, est, id); }
 
 async function telaPlanoEnem() {
   history.replaceState({ t: 'enem' }, '');
@@ -33,7 +35,7 @@ async function telaPlanoEnem() {
   const ZZ = [0, 70, 95, 40, -60, -95, -40, 50];
   let y = 10;
   const ilhas = lista.map((c, i) => {
-    const d = M_.tamanhoIlha(c.peso, max), ab = M_.aberta(mapa, est, c.id), cr = M_.cor(est, c.id);
+    const d = M_.tamanhoIlha(c.peso, max), ab = ilhaAberta(mapa, est, c.id), cr = M_.cor(est, c.id);
     const x = ZZ[i % ZZ.length], top = y; y += d + 28;
     const alvo = i === 0 && ab && cr !== 'verde' && !semNivel;
     return `<button class="ilha c-${cr} ${ab ? '' : 'fechada'} ${alvo ? 'alvo' : ''} ${d < 80 ? 'peq' : ''}" data-casa="${c.id}"
@@ -70,7 +72,7 @@ function desenharRota() {
 
 function abrirIlha(mapa, b) {
   raiz.querySelectorAll('.ilha-pop').forEach(p => p.remove());
-  const est = estadoEnem(), c = mapa.casas.find(x => x.id === b.dataset.casa), ab = M_.aberta(mapa, est, c.id);
+  const est = estadoEnem(), c = mapa.casas.find(x => x.id === b.dataset.casa), ab = ilhaAberta(mapa, est, c.id);
   const base = (c.prereq || []).map(p => mapa.casas.find(x => x.id === p)?.titulo).filter(Boolean).join(', ');
   const pop = document.createElement('div'); pop.className = `ilha-pop c-${M_.cor(est, c.id)}`;
   pop.style.top = `${b.offsetTop + b.offsetHeight + 10}px`;
